@@ -231,7 +231,7 @@ public class TileDbEventStore implements MetadataStore, ConnectionDataStore, Aut
 				Query query = scope.add(new Query(array));
 				SubArray subarray = scope.add(new SubArray(ctx,array));
 				ArraySchema schema = array.getSchema();
-				
+
 				subarray.setSubarray(toNativeArray(ctx, input.bufferRange));
 				query.setSubarray(subarray);
 				query.setLayout(eventStore2TileDbLayout.get(input.searchOrder)); //@TODO Fix me!!!!
@@ -265,140 +265,6 @@ public class TileDbEventStore implements MetadataStore, ConnectionDataStore, Aut
 		result.buffers=buffers;
 		return result;
 	}
-
-
-/*
- * // Submit in loop
-        while (true) {
-            query.submit();
-
-            int resultSize = attrBuffer.position();
-            attrBuffer.flip();  // Prepare for reading
-
-            // Process data in attrBuffer (e.g., convert bytes to strings, ints, etc.)
-            processBuffer(attrBuffer);
-
-            attrBuffer.clear(); // Reset for next read
-
-            if (query.getQueryStatus() != QueryStatus.TILEDB_INCOMPLETE) {
-                break;
-            }
-        }
- */
-
-/*
-   func (tdb *TileDbEventStore) GetArray(input GetArrayInput) (*ArrayResult, error) {
-	array, err := tiledb.NewArray(tdb.context, tdb.uri+"/"+input.DataPath)
-	if err != nil {
-		return nil, err
-	}
-
-	err = array.Open(tiledb.TILEDB_READ)
-	if err != nil {
-		return nil, err
-	}
-
-	schema, err := getArraySchema(*array)
-	if err != nil {
-		return nil, err
-	}
-
-	query, err := tiledb.NewQuery(tdb.context, array)
-	if err != nil {
-		return nil, err
-	}
-
-	subarray, err := array.NewSubarray()
-	if err != nil {
-		return nil, err
-	}
-
-	br := getOpBufferRange(input.BufferRange, schema.Domain)
-
-	err = subarray.SetSubArray(br)
-	if err != nil {
-		return nil, err
-	}
-
-	err = query.SetSubarray(subarray)
-	if err != nil {
-		return nil, err
-	}
-
-	searchlayout := eventStoreOrder2TileDbOrder[input.SearchOrder]
-	err = query.SetLayout(searchlayout)
-	if err != nil {
-		return nil, err
-	}
-
-	bufferElems, err := query.EstimateBufferElements()
-	if err != nil {
-		return nil, err
-	}
-
-	data := make([]any, len(input.Attrs))
-	offsets := make([]*[]uint64, len(input.Attrs))
-
-	for i, attr := range input.Attrs {
-		attrtype, err := schema.GetType(attr)
-		if err != nil {
-			return nil, err
-		}
-		data[i], offsets[i] = createBuffer(attr, attrtype, bufferElems, query)
-		_, err = query.SetDataBuffer(attr, data[i])
-		if err != nil {
-			return nil, err
-		}
-		if len(*offsets[i]) > 0 {
-			_, err = query.SetOffsetsBuffer(attr, *offsets[i])
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-	//////////////////////////////
-	//Set domains positions for sparse queries
-
-	var domains []any
-	if schema.ArrayType == ARRAY_SPARSE {
-		domains = make([]any, len(schema.DomainNames))
-
-		for i, domain := range schema.DomainNames {
-			domainElem := bufferElems[domain]
-			domains[i] = make([]int64, domainElem[1])
-			_, err = query.SetDataBuffer(domain, domains[i])
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	//////////////////////////////
-
-	err = query.Submit()
-	if err != nil {
-		return nil, err
-	}
-
-	for i := 0; i < len(data); i++ {
-		if len(*offsets[i]) > 0 {
-			vr := handleVariableResults(data[i].([]uint8), query, input.Attrs[i], *offsets[i])
-			data[i] = vr
-		}
-	}
-
-	return &ArrayResult{
-		Range:   br,
-		Data:    data,
-		Schema:  schema,
-		Attrs:   input.Attrs,
-		Domains: domains,
-	}, nil
-}
- * 
- */
-
-
 
 
  private NativeArray toNativeArray(Context ctx, Object val, boolean unsigned) throws TileDBError, EventStoreException{

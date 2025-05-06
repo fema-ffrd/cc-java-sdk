@@ -15,6 +15,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import usace.cc.plugin.api.filestore.FileStore;
+
 public class IOManager {
 
     //IO Manager Error Types
@@ -268,7 +270,7 @@ public class IOManager {
         Optional<DataSource> dsOpt = this.getDataSource(new GetDataSourceInput(dataSourceName, DataSourceIOType.OUTPUT));
         if (dsOpt.isPresent()){
             var ds = dsOpt.get();
-            Optional<FileDataStore> fdsOpt = getStoreSession(ds.getStoreName());
+            Optional<FileStore> fdsOpt = getStoreSession(ds.getStoreName());
             if (fdsOpt.isPresent()){
                 var fds = fdsOpt.get();
                 ByteArrayInputStream bais = new ByteArrayInputStream(data);
@@ -296,7 +298,7 @@ public class IOManager {
      */
     public InputStream getInputStream(DataSource dataSource, String pathKey) throws InvalidDataSourceException{
         try{
-            Optional<FileDataStore> fdsOpt = getStoreSession(dataSource.getStoreName());
+            Optional<FileStore> fdsOpt = getStoreSession(dataSource.getStoreName());
             if(fdsOpt.isPresent()){
                 var fds = fdsOpt.get();
                 return fds.get(pathKey);
@@ -311,7 +313,7 @@ public class IOManager {
      * Copies a local file to a remote data store.
      *
      * <p>This method retrieves a {@link DataSource} configured for output using the given
-     * destination name, then locates the associated {@link FileDataStore} session. 
+     * destination name, then locates the associated {@link FileStore} session. 
      * It reads the local file from the specified {@code localPath} and uploads its contents 
      * to the remote store under the provided {@code pathKey}.</p>
      *
@@ -326,7 +328,7 @@ public class IOManager {
         Optional<DataSource> dsOpt = this.getDataSource(new GetDataSourceInput(destinationName, DataSourceIOType.OUTPUT));
         if(dsOpt.isPresent()){
             var ds = dsOpt.get();
-            Optional<FileDataStore> fdsOpt = getStoreSession(ds.getStoreName());
+            Optional<FileStore> fdsOpt = getStoreSession(ds.getStoreName());
             if(fdsOpt.isPresent()){
                 var fdstore = fdsOpt.get();
                 File localFile = new File(localPath);

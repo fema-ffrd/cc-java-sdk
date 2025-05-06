@@ -1,4 +1,4 @@
-package usace.cc.plugin.api;
+package usace.cc.plugin.api.cloud.aws;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

@@ -1,4 +1,4 @@
-package usace.cc.plugin.api;
+package usace.cc.plugin.api.cloud.aws;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -26,8 +26,14 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 
+import usace.cc.plugin.api.ConnectionDataStore;
+import usace.cc.plugin.api.DataStore;
+import usace.cc.plugin.api.EnvironmentVariables;
+import usace.cc.plugin.api.StoreType;
+import usace.cc.plugin.api.filestore.FileStore;
+
 //@TODO move all package private vars to class private vars
-public class FileDataStoreS3 implements FileDataStore, ConnectionDataStore {
+public class FileStoreS3 implements FileStore, ConnectionDataStore {
     String bucket;
     String postFix;
     StoreType storeType;
@@ -35,10 +41,10 @@ public class FileDataStoreS3 implements FileDataStore, ConnectionDataStore {
     AWSConfig config;
     private static String S3ROOT = "root";
 
-    public FileDataStoreS3(){}
+    public FileStoreS3(){}
 
     @Override
-    public Boolean copy(FileDataStore destStore, String srcPath, String destPath) {
+    public Boolean copy(FileStore destStore, String srcPath, String destPath) {
         byte[] data;
         try {
             data = getObject(srcPath);
@@ -146,7 +152,7 @@ public class FileDataStoreS3 implements FileDataStore, ConnectionDataStore {
         String tmpRoot="";
         
         try {
-            Optional<String> optParam = ds.getParameters().get(FileDataStoreS3.S3ROOT);
+            Optional<String> optParam = ds.getParameters().get(FileStoreS3.S3ROOT);
             if (optParam.isPresent()){
                 tmpRoot = optParam.get();
             }

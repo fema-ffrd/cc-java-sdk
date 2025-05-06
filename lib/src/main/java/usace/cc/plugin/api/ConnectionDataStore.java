@@ -9,5 +9,6 @@ public interface ConnectionDataStore {
     }
 
     public ConnectionDataStore connect(DataStore ds) throws FailedToConnectError;
-    public Object rawSession();
+    
+    public Object rawSession(); //@TODO...can I switch Object to a generic type?
 }

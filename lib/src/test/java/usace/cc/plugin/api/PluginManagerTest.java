@@ -21,6 +21,7 @@ import usace.cc.plugin.api.eventstore.EventStore.PutArrayInput;
 import usace.cc.plugin.api.eventstore.tiledb.TileDbEventStore;
 
 public class PluginManagerTest {
+    
     @Test void someLibraryMethodReturnsTrue() {
         Library classUnderTest = new Library();
         assertTrue(classUnderTest.someLibraryMethod(), "someLibraryMethod should return 'false'");
@@ -178,18 +179,7 @@ public class PluginManagerTest {
                 System.out.println(result);
             } catch(Exception ex){
                 ex.printStackTrace();
-            }
-
-
-
-            
-
-             
-
-
-            //var buffer1 = new float{1.1, 2.2, 3.3, 4.4}
-
-            
+            }            
 
         }
 

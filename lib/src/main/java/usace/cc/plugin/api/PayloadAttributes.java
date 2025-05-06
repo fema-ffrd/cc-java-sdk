@@ -28,13 +28,13 @@ public class PayloadAttributes {
         return attributes.keySet();
     }
 
+    @SuppressWarnings("unchecked")
     public <T> Optional<T> get(String name) throws IllegalArgumentException{
         Object val = attributes.get(name);
         if (val==null){
             return Optional.empty();
         }else{
             try {
-                @SuppressWarnings("unchecked")
                 T tval =  (T) val;
                 return Optional.of(tval);
             } catch (ClassCastException e) {
@@ -44,7 +44,8 @@ public class PayloadAttributes {
     }
 
     //@TODO delete if uneccesary
-    public <T> Optional<T> getAlt1(String name, Class clazz) throws IllegalArgumentException{
+    @SuppressWarnings("unchecked")
+    public <T> Optional<T> getAlt1(String name, Class<T> clazz) throws IllegalArgumentException{
         Object val = attributes.get(name);
         if (val==null){
             return Optional.empty();

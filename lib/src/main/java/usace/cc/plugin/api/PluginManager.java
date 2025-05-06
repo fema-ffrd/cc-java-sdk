@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 import usace.cc.plugin.api.Error.ErrorLevel;
 import usace.cc.plugin.api.IOManager.InvalidDataStoreException;
+import usace.cc.plugin.api.cloud.aws.CcStoreS3;
 
 public final class PluginManager {
 
@@ -159,6 +160,7 @@ public final class PluginManager {
                     m = p.matcher(param);
                 break;
                 case "ATTR":
+                    //@TODO...decide on which payload aggreibute get method should be used!!!
                     //Optional<String> valattr = attrs.<String>get(subname);
                     //Optional<String> valattr = (Optional<String>)attrs.get(subname);
                     //Optional<String> valattr = attrs.getAlt1(subname, String.class);
@@ -167,7 +169,7 @@ public final class PluginManager {
                         param = param.replaceFirst("\\{"+result+"\\}", optVal.get());//?
                         m = p.matcher(param);
                     } else{
-                        //@TODO logging is kind of annoying
+                        //@TODO logging is applied inconsistently
                         logger.logMessage(new Message(String.format("Attribute %s not found", subname)));
                     }
                 break;
