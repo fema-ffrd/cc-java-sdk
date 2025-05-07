@@ -7,19 +7,20 @@ import usace.cc.plugin.api.ConnectionDataStore;
 import usace.cc.plugin.api.DataStore;
 import usace.cc.plugin.api.eventstore.EventStoreException;
 import usace.cc.plugin.api.eventstore.MetadataStore;
+import usace.cc.plugin.api.eventstore.MultiDimensionalArrayStore;
 import usace.cc.plugin.api.utils.ResourceScope;
 import usace.cc.plugin.api.eventstore.EventStore.ArrayDimension;
-import usace.cc.plugin.api.eventstore.EventStore.ArrayResult;
 import usace.cc.plugin.api.eventstore.EventStore.AttrType;
 import usace.cc.plugin.api.eventstore.EventStore.CreateArrayInput;
 import usace.cc.plugin.api.eventstore.EventStore.GetArrayInput;
 import usace.cc.plugin.api.eventstore.EventStore.PutArrayBuffer;
 import usace.cc.plugin.api.eventstore.EventStore.PutArrayInput;
+import usace.cc.plugin.api.eventstore.ArrayResult;
 import usace.cc.plugin.api.eventstore.EventStore.ArrayAttribute;
 import io.tiledb.java.api.*;
 
 
-public class TileDbEventStore implements MetadataStore, ConnectionDataStore, AutoCloseable {
+public class TileDbEventStore implements MetadataStore, ConnectionDataStore, MultiDimensionalArrayStore, AutoCloseable {
 
     private Context ctx;
 	private TileDbConfig config;

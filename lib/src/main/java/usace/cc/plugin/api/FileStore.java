@@ -1,4 +1,4 @@
-package usace.cc.plugin.api.filestore;
+package usace.cc.plugin.api;
 
 import java.io.InputStream;
 

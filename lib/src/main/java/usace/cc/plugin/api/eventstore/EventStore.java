@@ -210,10 +210,5 @@ public interface EventStore {
         public LayoutOrder searchOrder;
     }
 
-    public static class ArrayResult{
-        public Object[] buffers;
-    }
-
-
 }
 

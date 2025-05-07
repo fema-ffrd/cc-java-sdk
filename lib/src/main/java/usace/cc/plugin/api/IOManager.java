@@ -15,8 +15,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import usace.cc.plugin.api.filestore.FileStore;
-
 public class IOManager {
 
     //IO Manager Error Types

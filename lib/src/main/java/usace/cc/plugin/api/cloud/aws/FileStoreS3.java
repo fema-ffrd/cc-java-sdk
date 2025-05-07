@@ -29,8 +29,8 @@ import com.amazonaws.services.s3.model.S3Object;
 import usace.cc.plugin.api.ConnectionDataStore;
 import usace.cc.plugin.api.DataStore;
 import usace.cc.plugin.api.EnvironmentVariables;
+import usace.cc.plugin.api.FileStore;
 import usace.cc.plugin.api.StoreType;
-import usace.cc.plugin.api.filestore.FileStore;
 
 //@TODO move all package private vars to class private vars
 public class FileStoreS3 implements FileStore, ConnectionDataStore {
