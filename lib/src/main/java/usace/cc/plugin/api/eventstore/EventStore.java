@@ -96,9 +96,13 @@ public interface EventStore {
 
         private final static Map<Class<?>,AttrType> java2TiledbMap = new HashMap<>() {{
             put(Float.class, ATTR_FLOAT32);
+            put(float.class, ATTR_FLOAT32);
             put(Double.class, ATTR_FLOAT64);
+            put(double.class, ATTR_FLOAT64);
             put(Integer.class, ATTR_INT32);
+            put(int.class, ATTR_INT32);
             put(Long.class, ATTR_INT64);
+            put(long.class, ATTR_INT64);
             put(Short.class, ATTR_INT16);
             put(Byte.class, ATTR_UINT8);
             put(String.class, ATTR_STRING);

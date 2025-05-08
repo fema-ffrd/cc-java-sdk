@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -135,7 +134,7 @@ public class IOManager {
         }
 
         for(DataSource ds : sources){
-            if(ds.getName() == gdsi.getDataSourceName()){
+            if(ds.getName().equals(gdsi.getDataSourceName())){
                 return Optional.of(ds);
             }
         }

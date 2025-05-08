@@ -3,11 +3,14 @@ package usace.cc.plugin.api;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import io.tiledb.java.api.Version;
 import usace.cc.plugin.api.IOManager.InvalidDataStoreException;
+import usace.cc.plugin.api.eventstore.Recordset;
+import usace.cc.plugin.api.eventstore.Recordset.EventStoreAttr;
 import usace.cc.plugin.api.eventstore.EventStore.ArrayAttribute;
 import usace.cc.plugin.api.eventstore.EventStore.ArrayDimension;
 import usace.cc.plugin.api.eventstore.EventStore.ArrayType;
@@ -22,20 +25,58 @@ import usace.cc.plugin.api.eventstore.tiledb.TileDbEventStore;
 
 public class PluginManagerTest {
     
-    @Test void someLibraryMethodReturnsTrue() {
-        Library classUnderTest = new Library();
-        assertTrue(classUnderTest.someLibraryMethod(), "someLibraryMethod should return 'false'");
+    public static class DataTest{
+
+        
+        private String name;
+
+        @EventStoreAttr("es-name")
+        private int val1;
+        
+        private float val2;
+
+        public DataTest(){}
+
+        public DataTest(String name, int val1, float val2){
+            this.name=name;
+            this.val1=val1;
+            this.val2=val2;
+        }
     }
 
-    @Test void pluginManagerTest() throws InvalidDataStoreException{
+    @Test void pluginManagerTest() throws Exception{
         
+        var dt = new DataTest[]{
+            new DataTest("asdf",1,1f),
+            new DataTest("randy1",2,2f),
+            new DataTest("randy2",3,3f),
+            new DataTest("randy3",3,4f),
+            new DataTest("randy4",4,5f)
+        };
+
+        PluginManager pm = PluginManager.getInstance();
+
+        Payload payload = pm.getPayload();
+
+        var storeOpt  = payload.getStore("EVENT_STORE");
+        if(storeOpt.isPresent()){
+            Recordset<DataTest> rs = new Recordset<>(storeOpt.get(), "/thepath");
+            rs.Create(dt);
+            var out = rs.Read(DataTest.class, 1l,4l);
+            System.out.println(out);
+        }
+
+        
+
+
+
         Version version = new Version();
         var v = version.toString();
         System.out.println(v);
 
-        PluginManager pm = PluginManager.getInstance();
         
-        Payload payload = pm.getPayload();
+        
+        
 
         var payloadAttributes = payload.getAttributes();
 
@@ -48,6 +89,17 @@ public class PluginManagerTest {
         Optional<Double> testNumberOpt = payloadAttributes.get("testnumber");
         if (testNumberOpt.isPresent()){
             System.out.println(testNumberOpt.get());
+        }
+
+        Optional<List<Integer>> testArrayOpt = payloadAttributes.get("testarray");
+        if (testArrayOpt.isPresent()){
+            System.out.println(testArrayOpt.get());
+        }
+
+        Optional<float[]> testStringArrayOpt = payloadAttributes.get("teststringarray");
+        if (testStringArrayOpt.isPresent()){
+            //var testme = testStringArrayOpt.get();
+            System.out.println(testStringArrayOpt.get());
         }
 
         //You shouldn't need to access the underlying map, however it is accessible:
@@ -73,9 +125,9 @@ public class PluginManagerTest {
 
        
         //get a single store by name
-        Optional<DataStore> storeOpt = payload.getStore(stores[0].getName());
-        if(storeOpt.isPresent()){
-            System.out.println(storeOpt.get().getName());
+        Optional<DataStore> storeOpt2 = payload.getStore(stores[0].getName());
+        if(storeOpt2.isPresent()){
+            System.out.println(storeOpt2.get().getName());
         }
 
         //source functions
@@ -111,6 +163,7 @@ public class PluginManagerTest {
             }
 
         }
+        ///////////////
 
         //////////metadata
         Optional<TileDbEventStore> tiledbStoreOpt = payload.getStoreSession("EVENT_STORE");
