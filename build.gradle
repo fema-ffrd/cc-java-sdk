@@ -10,6 +10,9 @@ plugins {
     id 'java-library'
 }
 
+group = 'usace.cc'
+version = '1.0.0'
+
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
@@ -17,15 +20,15 @@ repositories {
 
 dependencies {
     // Use JUnit Jupiter for testing.
-    testImplementation libs.junit.jupiter
+    //testImplementation libs.junit.jupiter
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // This dependency is exported to consumers, that is to say found on their compile classpath.
-    api libs.commons.math3
+    //api libs.commons.math3
 
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
-    implementation libs.guava
+    //implementation libs.guava
 
     implementation files('/TileDB-2.26.2/TileDB-Java/build/libs/tiledb-java-0.28.2-SNAPSHOT.jar')
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.12.4'
@@ -34,6 +37,9 @@ dependencies {
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.12.4'
     implementation platform('com.amazonaws:aws-java-sdk-bom:1.11.1000')
     implementation 'com.amazonaws:aws-java-sdk-s3'
+    implementation 'com.google.guava:guava:31.1-jre'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.11.0'
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

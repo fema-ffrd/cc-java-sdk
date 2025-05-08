@@ -11,4 +11,4 @@ plugins {
 }
 
 rootProject.name = 'cc-java-sdk'
-include('lib')
+//include('cc-java-sdk')
