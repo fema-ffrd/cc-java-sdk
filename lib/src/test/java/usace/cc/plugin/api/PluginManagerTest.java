@@ -1,14 +1,11 @@
 package usace.cc.plugin.api;
 
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import io.tiledb.java.api.Version;
-import usace.cc.plugin.api.IOManager.InvalidDataStoreException;
 import usace.cc.plugin.api.eventstore.Recordset;
 import usace.cc.plugin.api.eventstore.Recordset.EventStoreAttr;
 import usace.cc.plugin.api.eventstore.EventStore.ArrayAttribute;
@@ -27,12 +24,13 @@ public class PluginManagerTest {
     
     public static class DataTest{
 
-        
+        @EventStoreAttr("es-name1")
         private String name;
 
-        @EventStoreAttr("es-name")
+        @EventStoreAttr("es-name2")
         private int val1;
         
+        @EventStoreAttr("station")
         private float val2;
 
         public DataTest(){}
@@ -50,7 +48,7 @@ public class PluginManagerTest {
             new DataTest("asdf",1,1f),
             new DataTest("randy1",2,2f),
             new DataTest("randy2",3,3f),
-            new DataTest("randy3",3,4f),
+            new DataTest("randy3",4,4f),
             new DataTest("randy4",4,5f)
         };
 
@@ -61,8 +59,8 @@ public class PluginManagerTest {
         var storeOpt  = payload.getStore("EVENT_STORE");
         if(storeOpt.isPresent()){
             Recordset<DataTest> rs = new Recordset<>(storeOpt.get(), "/thepath");
-            rs.Create(dt);
-            var out = rs.Read(DataTest.class, 1l,4l);
+            rs.create(dt);
+            var out = rs.read(DataTest.class, 1l,4l);
             System.out.println(out);
         }
 

@@ -181,7 +181,8 @@ public class TileDbEventStore implements MetadataStore, ConnectionDataStore, Mul
 			schema.setDomain(domain);	
 
 			for (ArrayAttribute attribute : input.attributes){
-				Attribute a = scope.add(new Attribute(ctx, attribute.name, AttrType.toJavaType(attribute.dataType)));
+				//Attribute a = scope.add(new Attribute(ctx, attribute.name, AttrType.toJavaType(attribute.dataType)));
+				Attribute a = scope.add(new Attribute(ctx, attribute.name, AttrType.toJavaWrappedType(attribute.dataType)));
 				if(attribute.dataType==AttrType.ATTR_STRING){
 					a.setCellValNum(Constants.TILEDB_VAR_NUM);
 				}
@@ -237,6 +238,7 @@ public class TileDbEventStore implements MetadataStore, ConnectionDataStore, Mul
 				query.setSubarray(subarray);
 				query.setLayout(eventStore2TileDbLayout.get(input.searchOrder)); //@TODO Fix me!!!!
 				HashMap<String, Pair<Long, Long>> max_sizes = query.getResultEstimations();
+				Map<String,Boolean> offsetMap = new HashMap<>();
 				for (String attr : input.attrs){
 					Pair<Long,Long> maxSize = max_sizes.get(attr);
 					var attrType = schema.getAttribute(attr);
@@ -245,11 +247,12 @@ public class TileDbEventStore implements MetadataStore, ConnectionDataStore, Mul
 					var first = maxSize.getFirst();
 					if (first!=null){
 						query.setOffsetsBuffer(attr, new NativeArray(ctx, first.intValue(), Datatype.TILEDB_UINT64)); //offsets  //@TODO..should these intValues be longValues?
+						offsetMap.put(attr, true);
 					}
 				}
 
 				query.submit();
-				return toArrayResult(input, query);
+				return toArrayResult(input, query, offsetMap);
 			}
 		} else {
 			throw new EventStoreException(String.format("Array does not exist: %s",input.arrayPath));
@@ -257,13 +260,18 @@ public class TileDbEventStore implements MetadataStore, ConnectionDataStore, Mul
 
 	}
 
-	public ArrayResult toArrayResult(GetArrayInput input, Query query) throws TileDBError{
+	public ArrayResult toArrayResult(GetArrayInput input, Query query, Map<String,Boolean> offsetMap) throws TileDBError{
 		ArrayResult result = new ArrayResult();
 		Object[] buffers = new Object[input.attrs.length];
+		long[][] offsetBuffers = new long[input.attrs.length][];
 		for (int i=0;i<input.attrs.length;i++){
 			buffers[i]=query.getBuffer(input.attrs[i]);
+			if(offsetMap.containsKey(input.attrs[i])){
+				offsetBuffers[i]=query.getOffsetsBuffer(input.attrs[i]);
+			}
 		}
 		result.buffers=buffers;
+		result.offsetBuffers=offsetBuffers;
 		return result;
 	}
 

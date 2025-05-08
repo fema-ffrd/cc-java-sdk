@@ -7,11 +7,10 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import usace.cc.plugin.api.DataStore;
-import usace.cc.plugin.api.IOManager.InvalidDataStoreException;
-import usace.cc.plugin.api.PluginManager;
 import usace.cc.plugin.api.eventstore.EventStore.ArrayAttribute;
 import usace.cc.plugin.api.eventstore.EventStore.ArrayDimension;
 import usace.cc.plugin.api.eventstore.EventStore.ArrayType;
@@ -83,7 +82,7 @@ public class Recordset<T> {
         } 
     }
 
-    public void Create(T[] data) throws Exception{
+    public void create(T[] data) throws Exception{
         this.attrData = toArrayAttrData(datapath,data);
         var session = this.store.getSession();
         if (session instanceof MultiDimensionalArrayStore arrayStore){
@@ -96,7 +95,7 @@ public class Recordset<T> {
         }
     }
 
-    public T[] Read(Class<?> clazz, long... recrange) throws Exception{
+    public T[] read(Class<?> clazz, long... recrange) throws Exception{
         if(recrange.length==2){
             var session = this.store.getSession();
             if (session instanceof MultiDimensionalArrayStore arrayStore){
@@ -117,20 +116,46 @@ public class Recordset<T> {
 
     @SuppressWarnings("unchecked")
     private T[] toJavaArray(ArrayResult result, Class<?> clazz) throws Exception{
-        var buflen = Array.getLength(result.buffers[0]);
+        
+        var buflen = 0;
+        if(result.offsetBuffers[0]==null){
+            buflen = Array.getLength(result.buffers[0]);
+        } else {
+            buflen=result.offsetBuffers[0].length;
+        }
+        
         var arrOut = Array.newInstance(clazz, buflen);
         for(int i=0;i<buflen;i++){
             var t = clazz.getDeclaredConstructor().newInstance();
             for(int j=0;j<attrData.size();j++){
                 var field = clazz.getDeclaredField(attrData.get(j).fieldName);
                 field.setAccessible(true);
-                var val = Array.get(result.buffers[j],i);
-                field.set(t,val);
+                //handle string
+                if(attrData.get(j).attrType==String.class){
+                    //var attr = attrData.get(j);
+                    var offsets = result.offsetBuffers[j];
+                    int startPos = (int)offsets[i];
+                    int endPos = 0;
+                    if(i==buflen-1){
+                         endPos=((byte[])result.buffers[j]).length;
+                    } else {
+                        endPos=(int)offsets[i+1];
+                    }
+                    
+                    byte[] offsetSlice = Arrays.copyOfRange((byte[])result.buffers[j], startPos, endPos);
+                    field.set(t,new String(offsetSlice));
+
+                } else {
+                    var val = Array.get(result.buffers[j],i);
+                    field.set(t,val);
+                }                
             }
             Array.set(arrOut, i, t);
         }
         return (T[])arrOut;
     }
+
+
 
     private String[] getAttrNames(){
         int attrSize = this.attrData.size();
@@ -153,12 +178,31 @@ public class Recordset<T> {
 
         for (int i=0;i<this.attrData.size();i++){
             var attr = this.attrData.get(i);
-            buffers[i]= new PutArrayBuffer(attr.attrName,attr.buffer);
+            if(attr.attrType==String.class){
+                setVariableLengthData(attr);
+                buffers[i] = new PutArrayBuffer(attr.attrName, attr.buffer, attr.offsets);
+            } else {
+                buffers[i]= new PutArrayBuffer(attr.attrName,attr.buffer);
+            }
         }
 
         pai.buffers=buffers;
 
         return pai;
+    }
+
+    private void setVariableLengthData(ArrayAttrData attr){
+        var attrStrings = (String[])attr.buffer;
+        var builder = new StringBuilder();
+        var offsets = new long[attrStrings.length];
+        long offsetPosition = 0;
+        for (int i=0;i<attrStrings.length;i++){
+            builder.append(attrStrings[i]);
+            offsets[i]=offsetPosition;
+            offsetPosition=offsetPosition+attrStrings[i].length();
+        }
+        attr.buffer=builder.toString();
+        attr.offsets=offsets;
     }
 
     private CreateArrayInput createArrayInput(){

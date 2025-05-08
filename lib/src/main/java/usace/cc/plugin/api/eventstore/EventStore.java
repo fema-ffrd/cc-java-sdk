@@ -140,7 +140,34 @@ public interface EventStore {
             }
             throw new EventStoreException(String.format("Invalid type for the event store: %s",t));
         }
+
+        public static Class<?> toJavaWrappedType(AttrType t) throws EventStoreException{
+            for (Entry<Class<?>,AttrType> entry : java2TiledbMap.entrySet()){
+                if(entry.getValue()==t){
+                    return wrapPrimitive(entry.getKey());
+                }
+            }
+            throw new EventStoreException(String.format("Invalid type for the event store: %s",t));
+        }
+
+        private static Class<?> wrapPrimitive(Class<?> clazz) {
+            if (!clazz.isPrimitive()) {
+                return clazz;
+            }
+            if (clazz == boolean.class) return Boolean.class;
+            if (clazz == byte.class) return Byte.class;
+            if (clazz == char.class) return Character.class;
+            if (clazz == short.class) return Short.class;
+            if (clazz == int.class) return Integer.class;
+            if (clazz == long.class) return Long.class;
+            if (clazz == float.class) return Float.class;
+            if (clazz == double.class) return Double.class;
+            if (clazz == void.class) return Void.class;
+            throw new IllegalArgumentException("Unknown primitive type: " + clazz);
+        }
     }
+
+    
 
     
     
