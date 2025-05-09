@@ -70,7 +70,7 @@ public class CcStoreS3 implements CcStore {
         Region clientRegion = RegionUtils.getRegion(config.aws_region);//.toUpperCase().replace("-", "_"));//Regions.valueOf(config.aws_region.toUpperCase().replace("-", "_"));
  
         AmazonS3 s3Client = null;
-        if(!config.aws_endpoint.equals("")){
+        if(!(config.aws_endpoint==null ||  config.aws_endpoint.equals(""))){
             System.out.println(String.format("Using alt endpoint: %s",config.aws_endpoint));
             config.aws_force_path_style=true;
             config.aws_disable_ssl=true;
