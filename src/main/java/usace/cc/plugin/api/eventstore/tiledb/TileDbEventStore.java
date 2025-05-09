@@ -66,8 +66,10 @@ public class TileDbEventStore implements MetadataStore, ConnectionDataStore, Mul
         if (rootPathOpt.isEmpty()){
             throw new EventStoreException("Missing root parameter for TILEDB Store");
         }
-		
-        try(var config = new TileDbConfig(rootPathOpt.get())){
+
+		Optional<String> esnOpt = ds.getParameters().get("eventStoreName");
+
+		try(var config = new TileDbConfig(rootPathOpt.get(),esnOpt)){
             this.ctx = new Context(config.getTileDbConfig());
 			this.config=config;
         } catch(TileDBError ex){

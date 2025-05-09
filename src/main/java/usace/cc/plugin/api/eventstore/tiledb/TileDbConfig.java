@@ -1,5 +1,6 @@
 package usace.cc.plugin.api.eventstore.tiledb;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,13 +20,23 @@ public class TileDbConfig implements AutoCloseable{
 
     private Config config;
 
-    public TileDbConfig(String rootPath){
+    private final String defaultEventStoreName = "eventdb";
+
+    public TileDbConfig(String rootPath, Optional<String> eventStoreNameOpt){
+        
         s3Id = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID);
         s3Key = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY);
         s3Region = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_DEFAULT_REGION);
         s3Bucket = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_S3_BUCKET);
         s3Endpoint = System.getenv(EnvironmentVariables.CC_PROFILE + "_" +EnvironmentVariables.AWS_ENDPOINT);
-        uri = String.format("s3://%s/%s/eventdb", s3Bucket, rootPath);        
+
+        String eventStoreName;
+        if(eventStoreNameOpt.isPresent()){
+            eventStoreName=eventStoreNameOpt.get();
+        } else {
+            eventStoreName=defaultEventStoreName;
+        }
+        uri = String.format("s3://%s/%s/%s", s3Bucket, rootPath, eventStoreName);        
     }
 
     //user has to handle closing the tiledb config object.
