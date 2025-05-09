@@ -75,12 +75,14 @@ public final class PluginManager {
 
 
     private void connectStores(DataStore[] stores) throws Exception{
-        for (DataStore store : stores){
-            Optional<ConnectionDataStore> dsOpt = DataStoreTypeRegistry.newStore(store.getStoreType());
-            if (dsOpt.isPresent()){
-                var dsInstance = dsOpt.get();
-                var conn = dsInstance.connect(store);
-                store.setSession(conn);
+        if(stores !=null){
+            for (DataStore store : stores){
+                Optional<ConnectionDataStore> dsOpt = DataStoreTypeRegistry.newStore(store.getStoreType());
+                if (dsOpt.isPresent()){
+                    var dsInstance = dsOpt.get();
+                    var conn = dsInstance.connect(store);
+                    store.setSession(conn);
+                }
             }
         }
     }

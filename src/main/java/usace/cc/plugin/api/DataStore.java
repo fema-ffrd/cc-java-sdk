@@ -61,6 +61,12 @@ public class DataStore {
         return dsProfile;
     }
 
+
+    @SuppressWarnings("unchecked")
+    public <T> T session(){
+        return (T)session;
+    }
+
     public Object getSession(){
         return session;
     }
