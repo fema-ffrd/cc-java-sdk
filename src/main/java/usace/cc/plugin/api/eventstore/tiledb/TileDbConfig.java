@@ -38,7 +38,7 @@ public class TileDbConfig implements AutoCloseable{
             config.set("vfs.s3.aws_secret_access_key", s3Key);
             config.set("vfs.s3.multipart_part_size", String.valueOf(5*1024*1024));
             config.set("vfs.s3.max_parallel_ops", "2");
-            if (!s3Endpoint.equals("")) {
+            if (!( s3Endpoint==null || s3Endpoint.equals(""))) {
                 Pattern pattern = Pattern.compile("^(https?)://(.+)$", Pattern.CASE_INSENSITIVE);
                 Matcher matcher = pattern.matcher(s3Endpoint);
 

@@ -125,7 +125,7 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
             var clientBuilder = AmazonS3ClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(credentials));
 
-            if (!"".equals(config.aws_endpoint)){
+            if (!(config.aws_endpoint==null || "".equals(config.aws_endpoint))){
                 ClientConfiguration clientConfiguration = new ClientConfiguration();
                 clientConfiguration.setSignerOverride("AWSS3V4SignerType");
                 clientConfiguration.setProtocol(Protocol.HTTP);
