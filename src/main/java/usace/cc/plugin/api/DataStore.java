@@ -64,10 +64,16 @@ public class DataStore {
 
     @SuppressWarnings("unchecked")
     public <T> T session(){
+        if (session instanceof ConnectionDataStore connectedSession){
+            return (T)connectedSession.rawSession();
+        }
         return (T)session;
     }
 
     public Object getSession(){
+        if (session instanceof ConnectionDataStore connectedSession){
+            return connectedSession.rawSession();
+        }
         return session;
     }
 
