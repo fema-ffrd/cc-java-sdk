@@ -14,6 +14,8 @@ import java.io.OutputStream;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import usace.cc.plugin.api.DataStore.DataStoreException;
+
 public class IOManager {
 
     //IO Manager Error Types
@@ -194,8 +196,9 @@ public class IOManager {
      * @param localPath the path on the local filesystem where the file will be written
      * @throws InvalidDataSourceException if the data source is not found or if an error occurs while accessing it
      * @throws IOException if an I/O error occurs during reading from the source or writing to the local file
+     * @throws DataStoreException if an error occurs while interacting with the data store
      */
-    public void copyFileToLocal(String dataSourceName, String pathkey, String localPath) throws IOException, InvalidDataSourceException{
+    public void copyFileToLocal(String dataSourceName, String pathkey, String localPath) throws IOException, InvalidDataSourceException, DataStoreException{
         Optional<DataSource> indsOpt = getDataSource(new GetDataSourceInput(dataSourceName, DataSourceIOType.INPUT));
         if (!indsOpt.isPresent()){
             throw new InvalidDataSourceException("Data source not found");
@@ -212,15 +215,6 @@ public class IOManager {
         }
     }
 
-    // public void write(InputStream writer, String datasourcename, String pathName, String datapathName) throws Exception{
-    //     DataSource ds = this.getDataSource(new GetDataSourceInput(datasourcename, DataSourceIOType.OUTPUT));
-    //     FileDataStore fds = GetStoreSession(ds.getStoreName());
-    //     fds.Put(writer, pathName);
-    // }
-
-
-    //@TODO dataPathName is not being used!!!!!
-
     /**
      * Retrieves the contents of a file from an input {@link DataSource} as a byte array.
      * <p>
@@ -236,8 +230,10 @@ public class IOManager {
      * @return a byte array containing the contents of the specified file
      * @throws InvalidDataSourceException if the data source is not found or cannot be accessed
      * @throws IOException if an I/O error occurs while reading from the data source
+     * @throws DataStoreException if an error occurs while interacting with the data store
      */
-    public byte[] get(String dataSourceName, String pathName, String dataPathName) throws IOException, InvalidDataSourceException{
+    public byte[] get(String dataSourceName, String pathName, String dataPathName) throws IOException, InvalidDataSourceException, DataStoreException{
+        //@TODO what do do with dataPathName
         Optional<DataSource> dsOpt = this.getDataSource(new GetDataSourceInput(dataSourceName, DataSourceIOType.INPUT));
         if (dsOpt.isPresent()){
             var ds = dsOpt.get();
@@ -262,8 +258,9 @@ public class IOManager {
      * @throws IOException if an I/O error occurs during the write
      * @throws InvalidDataSourceException if the specified data source cannot be found
      * @throws InvalidDataStoreException if the data store session for the data source cannot be obtained
+     * @throws DataStoreException if an error occurs while interacting with the data store
      */
-    public void put(byte[] data, String dataSourceName, String pathKey, String dataPathName) throws IOException, InvalidDataSourceException, InvalidDataStoreException{
+    public PutObjectOutput put(byte[] data, String dataSourceName, String pathKey, String dataPathName) throws IOException, InvalidDataSourceException, InvalidDataStoreException, DataStoreException{
         Optional<DataSource> dsOpt = this.getDataSource(new GetDataSourceInput(dataSourceName, DataSourceIOType.OUTPUT));
         if (dsOpt.isPresent()){
             var ds = dsOpt.get();
@@ -272,7 +269,7 @@ public class IOManager {
                 var fds = fdsOpt.get();
                 ByteArrayInputStream bais = new ByteArrayInputStream(data);
                 String filepath=ds.getPaths().get(pathKey);
-                fds.put(bais, filepath);
+                return fds.put(bais, filepath);
             } else {
                 throw new InvalidDataStoreException("Datastore not found");
             }
@@ -294,13 +291,13 @@ public class IOManager {
      * @throws InvalidDataSourceException if the store session cannot be obtained, if the store is not
      *         present, or if an underlying {@code InvalidDataStoreException} occurs
      */
-    public InputStream getInputStream(DataSource dataSource, String pathKey) throws InvalidDataSourceException{
+    public InputStream getInputStream(DataSource dataSource, String pathKey) throws InvalidDataSourceException, DataStoreException{
         try{
             Optional<FileStore> fdsOpt = getStoreSession(dataSource.getStoreName());
             if(fdsOpt.isPresent()){
                 var fds = fdsOpt.get();
                 String filepath=dataSource.getPaths().get(pathKey);
-                return fds.get(filepath);
+                return fds.get(filepath).getContent();
             }
             throw new InvalidDataSourceException("Unable to get input stream from the data source");
         } catch(InvalidDataStoreException ex) {
@@ -322,8 +319,9 @@ public class IOManager {
      * @throws InvalidDataSourceException if the specified data source is invalid or cannot be retrieved
      * @throws InvalidDataStoreException if the data store session cannot be established or is invalid
      * @throws IOException if an I/O error occurs while reading the local file or writing to the remote store
+     * @throws DataStoreException if an error occurs while interacting with the data store
      */
-    public void copyFileToRemote(String destinationName, String pathKey, String localPath) throws InvalidDataSourceException, InvalidDataStoreException, IOException{
+    public void copyFileToRemote(String destinationName, String pathKey, String localPath) throws InvalidDataSourceException, InvalidDataStoreException, IOException, DataStoreException{
         Optional<DataSource> dsOpt = this.getDataSource(new GetDataSourceInput(destinationName, DataSourceIOType.OUTPUT));
         if(dsOpt.isPresent()){
             var ds = dsOpt.get();

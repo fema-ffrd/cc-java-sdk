@@ -28,8 +28,11 @@ import com.amazonaws.services.s3.model.S3Object;
 
 import usace.cc.plugin.api.ConnectionDataStore;
 import usace.cc.plugin.api.DataStore;
+import usace.cc.plugin.api.DataStore.DataStoreException;
 import usace.cc.plugin.api.EnvironmentVariables;
 import usace.cc.plugin.api.FileStore;
+import usace.cc.plugin.api.GetObjectOutput;
+import usace.cc.plugin.api.PutObjectOutput;
 import usace.cc.plugin.api.StoreType;
 
 //@TODO move all package private vars to class private vars
@@ -43,69 +46,89 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
 
     public FileStoreS3(){}
 
+
     @Override
-    public Boolean copy(FileStore destStore, String srcPath, String destPath) {
+    public void copy(FileStore destStore, String srcPath, String destPath) throws DataStoreException{
         byte[] data;
         try {
             data = getObject(srcPath);
             ByteArrayInputStream bias = new ByteArrayInputStream(data);
-            return destStore.put(bias, destPath);
+            destStore.put(bias, destPath);
         } catch (RemoteException e) {
-            e.printStackTrace();
-            return false;
+           throw new DataStoreException(e);
         }
     }
 
+    /**
+     * Retrieves an input stream for the specified file in the S3 storage.
+     *
+     * @param path The path of the file to retrieve.
+     * @return An {@link InputStream} for the file, or {@code null} if an error occurs.
+     */
     @Override
-    public InputStream get(String path) {
+    public GetObjectOutput get(String path) throws DataStoreException{
         S3Object fullObject = null;
         String key = postFix + "/" + path;
-        System.out.println(path);
-        System.out.println(bucket);
         try {
             fullObject = awsS3.getObject(new GetObjectRequest(bucket, key));
-            System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
-            return fullObject.getObjectContent();
+            return new GetObjectOutput(fullObject.getObjectContent(), fullObject.getObjectMetadata().getContentType());
         }  catch (Exception e) {
-            e.printStackTrace();
-            return null;
+           throw new DataStoreException(e);
         } 
     }
 
+    /**
+     * Uploads data to the specified path in the S3 storage.
+     *
+     * @param data The input stream containing the data to upload.
+     * @param path The path where the data should be stored in the S3 storage.
+     * @return {@code true} if the upload operation is successful, otherwise {@code false}.
+     */
     @Override
-    public Boolean put(InputStream data, String path) {
+    public PutObjectOutput put(InputStream data, String path) throws DataStoreException{
         byte[] bytes;
         try {
             bytes = data.readAllBytes();
             return uploadToS3(config.aws_bucket, postFix + "/" + path, bytes);
         } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+            throw new DataStoreException(e);
         }
         
     }
 
+    /**
+     * Deletes a file from the specified path in the S3 storage.
+     *
+     * @param path The path of the file to delete.
+     * @return {@code true} if the deletion operation is successful, otherwise {@code false}.
+     */
     @Override
-    public Boolean delete(String path) {
-        DeleteObjectRequest dor = new DeleteObjectRequest(config.aws_bucket,postFix + "/" + path);
+    public void delete(String path) throws DataStoreException {
+        DeleteObjectRequest dor = new DeleteObjectRequest(config.aws_bucket, postFix + "/" + path);
         try{
             awsS3.deleteObject(dor);
-            return true;
-        }catch (AmazonServiceException e)
-        {
-            e.printStackTrace();
-            return false;
-        }catch(SdkClientException e){
-            e.printStackTrace();
-            return false;
+        } catch (SdkClientException e) {
+            throw new DataStoreException(e);
         }
     }
 
+    /**
+     * Returns the underlying AWS S3 client object.
+     *
+     * @return The {@link AmazonS3} client object.
+     */
     @Override
     public Object rawSession(){
         return awsS3;
     }
     
+    /**
+     * Establishes a connection to the S3 storage using provided configuration data.
+     *
+     * @param ds The {@link DataStore} containing the necessary configuration parameters.
+     * @return This instance of {@link FileStoreS3} after establishing the connection.
+     * @throws FailedToConnectError If the connection cannot be established.
+     */
     @Override
     public ConnectionDataStore connect(DataStore ds) throws FailedToConnectError{
         config = new AWSConfig();
@@ -203,7 +226,7 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
         }
     }
 
-    private boolean uploadToS3(String bucketName, String objectKey, byte[] fileBytes) {
+    private PutObjectOutput uploadToS3(String bucketName, String objectKey, byte[] fileBytes) throws DataStoreException {
         try {
             InputStream stream = new ByteArrayInputStream(fileBytes);
             ObjectMetadata meta = new ObjectMetadata();
@@ -211,10 +234,9 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
             PutObjectRequest putOb = new PutObjectRequest(bucketName, objectKey,stream, meta);
             PutObjectResult response = awsS3.putObject(putOb);
             System.out.println(response.getETag());
-            return true;
+            return new PutObjectOutput(response.getETag(),response.getContentMd5());
         } catch (SdkBaseException e) {
-            System.out.println(e.getMessage());
-            return false;
+            throw new DataStoreException(e);
         }
     }
 
