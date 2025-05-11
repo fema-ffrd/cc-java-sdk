@@ -34,8 +34,8 @@ public class DataSource {
         this.name=name;
     }
     
-    public Optional<Map<String,String>> getPaths(){
-        return Optional.ofNullable(this.paths);
+    public Map<String,String> getPaths(){
+        return this.paths;
     }
 
     public void setPaths(Map<String,String> paths){

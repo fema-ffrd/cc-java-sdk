@@ -128,9 +128,8 @@ public final class PluginManager {
         var param = parameterSubstitute(ds.getName(),attrs); 
         ds.setName(param);
         
-        var pathOpt = ds.getPaths();
-        if (pathOpt.isPresent()){
-            var paths = pathOpt.get();
+        var paths = ds.getPaths();
+        if (paths!=null){
             for (String key : paths.keySet()){
                 paths.put(key, parameterSubstitute(paths.get(key), attrs));
             }

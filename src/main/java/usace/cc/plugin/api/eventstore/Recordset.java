@@ -84,7 +84,7 @@ public class Recordset<T> {
 
     public void create(T[] data) throws Exception{
         this.attrData = toArrayAttrData(datapath,data);
-        var session = this.store.getSession();
+        var session = this.store.getRawSession();
         if (session instanceof MultiDimensionalArrayStore arrayStore){
             var cai = createArrayInput();
             arrayStore.createArray(cai);
@@ -97,7 +97,7 @@ public class Recordset<T> {
 
     public T[] read(Class<?> clazz, long... recrange) throws Exception{
         if(recrange.length==2){
-            var session = this.store.getSession();
+            var session = this.store.getRawSession();
             if (session instanceof MultiDimensionalArrayStore arrayStore){
                 var input = new GetArrayInput();
                 input.arrayPath=this.datapath;

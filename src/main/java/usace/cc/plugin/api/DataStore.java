@@ -62,15 +62,24 @@ public class DataStore {
     }
 
 
+    //@TODO discuss this with will.  this is kind of fragile
     @SuppressWarnings("unchecked")
-    public <T> T session(){
+    public <T> T session(Class<T> sessionType){
         if (session instanceof ConnectionDataStore connectedSession){
-            return (T)connectedSession.rawSession();
+            if(sessionType.isInstance(session)){
+                return (T)session;
+            } else{
+                return (T)connectedSession.rawSession();
+            }
         }
         return (T)session;
     }
 
     public Object getSession(){
+        return session;
+    }
+
+    public Object getRawSession(){
         if (session instanceof ConnectionDataStore connectedSession){
             return connectedSession.rawSession();
         }

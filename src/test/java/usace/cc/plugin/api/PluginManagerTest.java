@@ -64,17 +64,6 @@ public class PluginManagerTest {
             System.out.println(out);
         }
 
-        
-
-
-
-        Version version = new Version();
-        var v = version.toString();
-        System.out.println(v);
-
-        
-        
-        
 
         var payloadAttributes = payload.getAttributes();
 
@@ -91,13 +80,14 @@ public class PluginManagerTest {
 
         Optional<List<Integer>> testArrayOpt = payloadAttributes.get("testarray");
         if (testArrayOpt.isPresent()){
-            System.out.println(testArrayOpt.get());
+            List<Integer> testArrayInt = testArrayOpt.get();
+            System.out.println(testArrayInt);
         }
 
-        Optional<float[]> testStringArrayOpt = payloadAttributes.get("teststringarray");
+        Optional<String> testStringArrayOpt = payloadAttributes.get("teststringarray");
         if (testStringArrayOpt.isPresent()){
-            //var testme = testStringArrayOpt.get();
-            System.out.println(testStringArrayOpt.get());
+            var testArrayString = testStringArrayOpt.get();
+            System.out.println(testArrayString);
         }
 
         //You shouldn't need to access the underlying map, however it is accessible:
@@ -108,18 +98,18 @@ public class PluginManagerTest {
         //store functions
         //get all stores
         DataStore[] stores = payload.getStores();
-        for (DataStore store:stores){
-            System.out.println(store.getName());
-            if ("EVENT_STORE".equals(store.getName())){
-                var tdb = new TileDbEventStore();
-                try{
-                    tdb.connect(store);
-                } catch(Exception ex){
-                    ex.printStackTrace();
-                }
-            }
+        // for (DataStore store:stores){
+        //     System.out.println(store.getName());
+        //     if ("EVENT_STORE".equals(store.getName())){
+        //         var tdb = new TileDbEventStore();
+        //         try{
+        //             tdb.connect(store);
+        //         } catch(Exception ex){
+        //             ex.printStackTrace();
+        //         }
+        //     }
             
-        }
+        // }
 
        
         //get a single store by name

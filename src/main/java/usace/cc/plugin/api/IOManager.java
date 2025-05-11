@@ -256,14 +256,14 @@ public class IOManager {
      *
      * @param data the data to write
      * @param dataSourceName the name of the output data source to target
-     * @param pathName the path within the data store to write the data to
+     * @param pathKey the path within the data store to write the data to
      * @param dataPathName currently unused, reserved for future expansion or routing
      *
      * @throws IOException if an I/O error occurs during the write
      * @throws InvalidDataSourceException if the specified data source cannot be found
      * @throws InvalidDataStoreException if the data store session for the data source cannot be obtained
      */
-    public void put(byte[] data, String dataSourceName, String pathName, String dataPathName) throws IOException, InvalidDataSourceException, InvalidDataStoreException{
+    public void put(byte[] data, String dataSourceName, String pathKey, String dataPathName) throws IOException, InvalidDataSourceException, InvalidDataStoreException{
         Optional<DataSource> dsOpt = this.getDataSource(new GetDataSourceInput(dataSourceName, DataSourceIOType.OUTPUT));
         if (dsOpt.isPresent()){
             var ds = dsOpt.get();
@@ -271,7 +271,8 @@ public class IOManager {
             if (fdsOpt.isPresent()){
                 var fds = fdsOpt.get();
                 ByteArrayInputStream bais = new ByteArrayInputStream(data);
-                fds.put(bais, pathName);
+                String filepath=ds.getPaths().get(pathKey);
+                fds.put(bais, filepath);
             } else {
                 throw new InvalidDataStoreException("Datastore not found");
             }
@@ -298,7 +299,8 @@ public class IOManager {
             Optional<FileStore> fdsOpt = getStoreSession(dataSource.getStoreName());
             if(fdsOpt.isPresent()){
                 var fds = fdsOpt.get();
-                return fds.get(pathKey);
+                String filepath=dataSource.getPaths().get(pathKey);
+                return fds.get(filepath);
             }
             throw new InvalidDataSourceException("Unable to get input stream from the data source");
         } catch(InvalidDataStoreException ex) {
@@ -330,7 +332,8 @@ public class IOManager {
                 var fdstore = fdsOpt.get();
                 File localFile = new File(localPath);
                 InputStream reader = new FileInputStream(localFile);
-                fdstore.put(reader, pathKey);
+                String filepath=ds.getPaths().get(pathKey);
+                fdstore.put(reader, filepath);
             }    
         } 
     }
@@ -350,6 +353,7 @@ public class IOManager {
      *         or {@code Optional.empty()} if no matching store is found or the session is {@code null}.
      * @throws InvalidDataStoreException if the session cannot be cast to the specified type {@code T}.
      */
+    @SuppressWarnings("unchecked")
     public <T> Optional<T> getStoreSession(String name) throws InvalidDataStoreException{
         for(DataStore ds : stores){
             if (name.equals(ds.getName())){
