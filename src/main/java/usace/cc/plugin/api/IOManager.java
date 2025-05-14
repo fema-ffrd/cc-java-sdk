@@ -353,17 +353,17 @@ public class IOManager {
      */
     @SuppressWarnings("unchecked")
     public <T> Optional<T> getStoreSession(String name) throws InvalidDataStoreException{
-        for(DataStore ds : stores){
-            if (name.equals(ds.getName())){
-                try{
-                    T session = (T)ds.getSession();
-                    if (session==null){
-                        return Optional.empty();    
-                    }
-                    return Optional.of(session);
-                } catch(ClassCastException ex){
-                    throw new InvalidDataStoreException(ex);
+        var storeOpt = getStore(name);
+        if(storeOpt.isPresent()){
+            var store = storeOpt.get();
+            try{
+                T session = (T)store.getSession();
+                if (session==null){
+                    return Optional.empty();    
                 }
+                return Optional.of(session);
+            } catch(ClassCastException ex){
+                throw new InvalidDataStoreException(ex);
             }
         }
         return Optional.empty();
