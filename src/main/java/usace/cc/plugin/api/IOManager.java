@@ -207,11 +207,25 @@ public class IOManager {
         DataSource inds = indsOpt.get();
         
         try (InputStream is = getInputStream(inds, pathkey)) {
-           byte[] bytes = is.readAllBytes();
-           File outfile = new File(localPath);
-           try(OutputStream writer = new FileOutputStream(outfile)){
+            byte[] bytes = is.readAllBytes();
+            File outfile = new File(localPath);
+           
+            //
+            File parentDir = outfile.getParentFile();
+            if (parentDir != null && !parentDir.exists()) {
+                if(parentDir.mkdirs()){
+                    if (!outfile.createNewFile()){
+                        throw new DataStoreException(String.format("unable to create file: %s",localPath));
+                    }
+                } else {
+                    throw new DataStoreException(String.format("unable to create full path for %s",localPath));
+                }
+            }
+           //
+            
+            try(OutputStream writer = new FileOutputStream(outfile)){
                 writer.write(bytes);
-           } 
+            } 
         }
     }
 
