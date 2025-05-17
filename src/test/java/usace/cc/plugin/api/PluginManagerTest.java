@@ -1,13 +1,16 @@
 package usace.cc.plugin.api;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import io.tiledb.java.api.Version;
-import usace.cc.plugin.api.eventstore.Recordset;
-import usace.cc.plugin.api.eventstore.Recordset.EventStoreAttr;
+
+import usace.cc.plugin.api.IOManager.InvalidDataStoreException;
 import usace.cc.plugin.api.eventstore.EventStore.ArrayAttribute;
 import usace.cc.plugin.api.eventstore.EventStore.ArrayDimension;
 import usace.cc.plugin.api.eventstore.EventStore.ArrayType;
@@ -20,50 +23,38 @@ import usace.cc.plugin.api.eventstore.EventStore.PutArrayBuffer;
 import usace.cc.plugin.api.eventstore.EventStore.PutArrayInput;
 import usace.cc.plugin.api.eventstore.tiledb.TileDbEventStore;
 
+
+/*
+ * getpayload
+ * parameterSubtitute
+ * pathSubstitute
+ * 
+ */
+
 public class PluginManagerTest {
+
+    private PluginManager pm;
+    private Payload payload;
+
+    @BeforeEach
+    void setUp() throws InvalidDataStoreException {
+        pm = PluginManager.getInstance();
+        payload = pm.getPayload();            
+    }
     
-    public static class DataTest{
-
-        @EventStoreAttr("es-name1")
-        private String name;
-
-        @EventStoreAttr("es-name2")
-        private int val1;
-        
-        @EventStoreAttr("station")
-        private float val2;
-
-        public DataTest(){}
-
-        public DataTest(String name, int val1, float val2){
-            this.name=name;
-            this.val1=val1;
-            this.val2=val2;
-        }
+    @Test
+    public void testGetEventIdentifier() {
+        String expectedResult = "1";
+        assertEquals(expectedResult, pm.getEventIdentifier());
     }
 
-    @Test void pluginManagerTest() throws Exception{
-        
-        var dt = new DataTest[]{
-            new DataTest("asdf",1,1f),
-            new DataTest("randy1",2,2f),
-            new DataTest("randy2",3,3f),
-            new DataTest("randy3",4,4f),
-            new DataTest("randy4",4,5f)
-        };
+
+    @Test 
+    void pluginManagerTest() throws Exception{
 
         PluginManager pm = PluginManager.getInstance();
 
         Payload payload = pm.getPayload();
-
-        var storeOpt  = payload.getStore("EVENT_STORE");
-        if(storeOpt.isPresent()){
-            Recordset<DataTest> rs = new Recordset<>(storeOpt.get(), "/thepath");
-            rs.create(dt);
-            var out = rs.read(DataTest.class, 1l,4l);
-            System.out.println(out);
-        }
-
 
         var payloadAttributes = payload.getAttributes();
 
