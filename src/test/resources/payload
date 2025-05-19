@@ -1,0 +1,176 @@
+{
+  "attributes": {
+    "event_array": "array1", 
+    "dir1": "/mydata/dir1",
+    "scenario": "conformance",
+    "outputroot": "simulations",
+    "testarray": [1,2,3,4],
+    "teststringarray": ["9","8","7","6"],
+    "testnumberarray":[9.9,8.8,7.7,6.6],
+    "testboolarray": [true,false,true,false],
+    "testnumber": 999.8888,
+    "testint": 99,
+    "testbool": true,
+    "testobject": {
+      "key1" : "val1",
+      "key2" : 999.99
+    },
+    "testAttrSubstitute":"987654"
+  },
+  "stores": [
+    {
+      "name": "S3STORE",
+      "store_type": "S3",
+      "profile": "S3STORE",
+      "params": {
+        "root": "/model-library/yukon_river"
+      }
+    },
+    {
+      "name": "EVENT_STORE",
+      "store_type": "TILEDB",
+      "profile": "S3STORE",
+      "params": {
+        "root": "/model-library/yukon_river"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "name": "image1",
+      "paths": {
+       "default":"test.webp"
+      },
+      "store_name": "S3STORE"
+    },
+    {
+      "name": "text1",
+      "paths": {
+       "default":"hw.txt"
+      },
+      "store_name": "S3STORE"
+    },
+    {
+      "name": "test-in1",
+      "paths": {
+       "default":"mockdata.txt"
+      },
+      "store_name": "S3STORE"
+    },
+    {
+      "name": "test3",
+      "paths": {
+       "default":"{ENV::CC_ROOT}/test/{ATTR::testAttrSubstitute}/hwout.txt"
+      },
+      "store_name": "S3STORE"
+    },
+    {
+      "name": "test4",
+      "paths": {
+       "default":"hwout.webp"
+      },
+      "store_name": "S3STORE"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "test-out1",
+      "paths": {
+       "default":"hwout.webp"
+      },
+      "store_name": "S3STORE"
+    },
+    {
+      "name": "test-out2",
+      "paths": {
+       "default":"mockdata.txt"
+      },
+      "store_name": "S3STORE"
+    }
+  ],
+  "actions": [{
+        "type": "action1",
+        "description": "generating seeds by blocks",
+        "stores": [
+          {
+            "name": "FFRD",
+            "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+            "store_type": "S3",
+            "profile": "S3STORE",
+            "params": {
+                "root": "model-library/ffrd-trinity"
+            }
+        },{
+            "name": "eventstore",
+            "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+            "store_type": "TILEDB",
+            "profile": "S3STORE",
+            "params": {
+              "root": "model-library/ffrd-trinity/conformance/simulations"
+            }
+        }],
+        "inputs": [{
+            "name": "blocks",
+            "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+            "paths": {
+              "default":"hwout.txt"
+            },
+            "store_name": "FFRD"
+        },{
+          "name": "blocks2",
+          "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+          "paths": {
+            "default":"hwout.txt"
+          },
+          "store_name": "FFRDZ"
+      }],
+        "outputs": [{
+            "name": "seeds",
+            "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+            "paths": {"default":"{ENV::CC_ROOT}/test/{ATTR::test123}/hwout2.txt"},
+            "store_name": "eventstore"
+        }],
+        "attributes": {
+            "block_dataset_name":"blocks",
+            "block_store_type":"eventstore",
+            "seed_dataset_name":"seeds",
+            "seed_store_type":"eventstore",
+            "initial_event_seed": 8855534638979991142,
+            "initial_realization_seed": 8380661580462607644,
+            "plugins": [
+                "fragilitycurveplugin",
+                "hms-mutator",
+                "hms-runner",
+                "ressim-runner",
+                "consequences_bardwell-creek",
+                "consequences_bedias-creek",
+                "consequences_below-bear",
+                "consequences_below-clear-fork",
+                "consequences_below-east-fork",
+                "consequences_below-little-elkheart",
+                "consequences_below-richland",
+                "consequences_below-west-fork",
+                "consequences_bridgeport",
+                "consequences_cedar-creek",
+                "consequences_chambers-creek",
+                "consequences_clear-creek",
+                "consequences_clear-fork",
+                "consequences_denton",
+                "consequences_eagle-mountain",
+                "consequences_east-fork",
+                "consequences_kickapoo",
+                "consequences_lavon",
+                "consequences_lewisville",
+                "consequences_livingston",
+                "consequences_mill-creek",
+                "consequences_mountain",
+                "consequences_ray-hubbard",
+                "consequences_ray-roberts",
+                "consequences_richland-chambers",
+                "consequences_white-rock"
+            ],
+            "store_type":"json"
+        }
+    }
+  ]
+}
