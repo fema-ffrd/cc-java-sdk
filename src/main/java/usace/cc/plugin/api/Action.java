@@ -11,11 +11,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Action extends IOManager{
 
     @JsonProperty
+    private String name;
+
+    @JsonProperty
     private String type;
     
     @JsonProperty("description")
     private String desc;
     
+    public String getName(){
+        return name;
+    }
+
     public String getType(){
         return type;
     }

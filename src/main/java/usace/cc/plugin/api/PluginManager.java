@@ -1,5 +1,6 @@
 package usace.cc.plugin.api;
  
+import java.lang.reflect.Constructor;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -7,6 +8,10 @@ import java.util.regex.Pattern;
 
 import usace.cc.plugin.api.Error.ErrorLevel;
 import usace.cc.plugin.api.IOManager.InvalidDataStoreException;
+import usace.cc.plugin.api.action_runner.ActionRunnerRegistry;
+import usace.cc.plugin.api.action_runner.ActionRunner;
+import usace.cc.plugin.api.action_runner.ActionRunner.ActionRunnerException;
+import usace.cc.plugin.api.action_runner.ActionRunnerBase;
 import usace.cc.plugin.api.cloud.aws.CcStoreS3;
 
 public final class PluginManager {
@@ -19,7 +24,6 @@ public final class PluginManager {
     //private boolean hasUpdatedPaths = false;
     private Pattern p;
     private final String pathPattern = "(?<=\\{).+?(?=\\})";
-
     
     public static PluginManager getInstance() throws InvalidDataStoreException{
         if (instance==null){
@@ -73,7 +77,30 @@ public final class PluginManager {
         logger.reportStatus(report);
     }
 
+    public void RunActions() throws ActionRunnerException{
+        for (Action action:this.getPayload().getActions()){
+            Optional<Class<? extends ActionRunner>> runnerClassOpt = ActionRunnerRegistry.getInstance().getActionRunnerClass(action.getName());
+            if(runnerClassOpt.isPresent()){
+                try{
+                    Constructor<? extends ActionRunner> constructor = runnerClassOpt.get().getConstructor();
+                    ActionRunner runner = constructor.newInstance();
+                    if(runner instanceof ActionRunnerBase){
+                        ActionRunnerBase baseRunner =(ActionRunnerBase)runner;
+                        baseRunner.setPm(instance);
+                        baseRunner.setAction(action);
+                        baseRunner.setName(action.getName()); 
+                    }
+                    runner.Run();
+                } catch(Exception ex){
+                    throw new ActionRunnerException(ex);
+                }
+            } else {
+                throw new ActionRunnerException(String.format("invalid action name: %s",action.getName()));
+            }
+        }
+    }
 
+    //Private methods
     private void connectStores(DataStore[] stores) throws Exception{
         if(stores !=null){
             for (DataStore store : stores){
@@ -161,10 +188,6 @@ public final class PluginManager {
                     m = p.matcher(param);
                 break;
                 case "ATTR":
-                    //@TODO...decide on which payload aggreibute get method should be used!!!
-                    //Optional<String> valattr = attrs.<String>get(subname);
-                    //Optional<String> valattr = (Optional<String>)attrs.get(subname);
-                    //Optional<String> valattr = attrs.getAlt1(subname, String.class);
                     Optional<String> optVal = attrs.get(subname);
                     if (optVal.isPresent()){
                         param = param.replaceFirst("\\{"+result+"\\}", optVal.get());//?
