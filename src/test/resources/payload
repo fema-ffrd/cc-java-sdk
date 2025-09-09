@@ -116,21 +116,29 @@
               "default":"hwout.txt"
             },
             "store_name": "FFRD"
-        },{
-          "name": "blocks2",
-          "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-          "paths": {
-            "default":"hwout.txt"
+          },{
+            "name": "blocks2",
+            "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+            "paths": {
+              "default":"hwout.txt"
+            },
+            "store_name": "FFRDZ"
           },
-          "store_name": "FFRDZ"
-      }],
+          {
+            "name": "inputseeds",
+            "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+            "paths": {"default":"{ENV::CC_ROOT}/test/{ATTR::scenario}/hwout.txt"},
+            "store_name": "eventstore"
+          }
+        ],
         "outputs": [{
             "name": "seeds",
             "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-            "paths": {"default":"{ENV::CC_ROOT}/test/{ATTR::test123}/hwout2.txt"},
+            "paths": {"default":"{ENV::CC_ROOT}/test/{ATTR::testAttrSubstitute}/hwout.txt"},
             "store_name": "eventstore"
         }],
         "attributes": {
+            "myccroot":"{ENV::CC_ROOT}",
             "block_dataset_name":"blocks",
             "block_store_type":"eventstore",
             "seed_dataset_name":"seeds",

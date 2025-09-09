@@ -117,6 +117,8 @@ public final class PluginManager {
     private void substitutePathVariables(){
         var attrs = this.payload.getAttributes();
 
+        //var attrs = this.payload.getAttributes().merge(this.payload.getActions());
+
         for (DataSource ds : this.payload.getInputs()){ 
             substitutePaths(ds,attrs);
         }
@@ -126,19 +128,25 @@ public final class PluginManager {
         }
 
         for (Action action :this.payload.getActions()){
-            //substitute map vars
-            substituteAttributes(action.getAttributes());
+            //create a merged map for action path substitution
+            var mergedAttr = attrs.merge(action.getAttributes());
+
+            //Disabling substitute in action attributes
+            //substituteAttributes(action.getAttributes());
   
             for (DataSource ds : action.getInputs()){ 
-                substitutePaths(ds,attrs);
+                substitutePaths(ds,mergedAttr);
             }
     
             for (DataSource ds : action.getOutputs()){ 
-                substitutePaths(ds,attrs);
+                substitutePaths(ds,mergedAttr);
             }
         }
     }
 
+    //this method is depricated and no longer used
+    //keeping it around for another version or two in case we change our mind
+    //and decide to allow action attribute substitution again
     private void substituteAttributes(PayloadAttributes pattrs){
         var attrs = pattrs.getAttributes();
         for (Map.Entry<String, Object> entry : attrs.entrySet()) {

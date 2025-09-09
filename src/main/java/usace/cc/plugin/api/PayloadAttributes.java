@@ -1,5 +1,6 @@
 package usace.cc.plugin.api;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -41,6 +42,13 @@ public class PayloadAttributes {
                 throw new IllegalArgumentException("Invalid type cast.", e);
             }  
         }
+    }
+
+    public PayloadAttributes merge(PayloadAttributes pa){
+        var newmap = new HashMap<String,Object>();
+        newmap.putAll(this.attributes);
+        newmap.putAll(pa.attributes);
+        return new PayloadAttributes(newmap);
     }
 
     //@TODO delete if uneccesary

@@ -24,7 +24,7 @@ public class PayloadAttributeTest {
     @Test 
     void getAttributesTest(){
         var payloadAttributes = payload.getAttributes();
-        int expectedNumberOfAttributes = 12;
+        int expectedNumberOfAttributes = 13;
         int numberOfAttributes = payloadAttributes.entrySet().size();
         if (numberOfAttributes!=expectedNumberOfAttributes){
             Assertions.fail(String.format("Expected %d attributes, found %d",expectedNumberOfAttributes,numberOfAttributes));
@@ -163,5 +163,73 @@ public class PayloadAttributeTest {
             Assertions.fail("Attribute 'testobject' not found");
         }
     }
+
+    //Test payload substitution for payload input
+    @Test
+    void payloadSubstitutionTest(){
+        var pathkey = "default";
+        var dsOpt = payload.getInputDataSource("test3");
+        var expectedResult = "cc_store/test/987654/hwout.txt";
+        if(dsOpt.isPresent()){
+            var ds = dsOpt.get();
+            var result = ds.getPath(pathkey);
+            if (!result.equals(expectedResult)){
+                Assertions.fail(String.format("Expected %s, found %s", expectedResult, result));
+            }
+        } else {
+            Assertions.fail("DataSource 'test3' not found");
+        }
+    }
+
+    //Test payload substitution for action output
+    @Test
+    void actionPayloadSubstitutionTest(){
+        var action = payload.getActions()[0];
+        var pathkey = "default";
+        var dsOpt = action.getOutputDataSource("seeds");
+        var expectedResult = "cc_store/test/987654/hwout.txt";
+        if(dsOpt.isPresent()){
+            var ds = dsOpt.get();
+            var result = ds.getPath(pathkey);
+            if (!result.equals(expectedResult)){
+                Assertions.fail(String.format("Expected %s, found %s", expectedResult, result));
+            }
+        } else {
+            Assertions.fail("DataSource 'test3' not found");
+        }
+    }
+
+    //Test action attribute substitution for action input
+    @Test
+    void actionAttrPayloadSubstitutionTest(){
+        var action = payload.getActions()[0];
+        var pathkey = "default";
+        var dsOpt = action.getInputDataSource("inputseeds");
+        var expectedResult = "cc_store/test/conformance/hwout.txt";
+        if(dsOpt.isPresent()){
+            var ds = dsOpt.get();
+            var result = ds.getPath(pathkey);
+            if (!result.equals(expectedResult)){
+                Assertions.fail(String.format("Expected %s, found %s", expectedResult, result));
+            }
+        } else {
+            Assertions.fail("DataSource 'test3' not found");
+        }
+    }
     
+    //Test that action attrs are not substituted
+    @Test
+    void actionAttrNoSubstitutionTest(){
+        var action = payload.getActions()[0];
+        var resultOpt = action.getAttributes().get("myccroot");
+        var expectedResult = "{ENV::CC_ROOT}";
+        if (resultOpt.isPresent()){
+            var result = resultOpt.get();
+            if (!result.equals(expectedResult)){
+                Assertions.fail(String.format("Expected %s, found %s", expectedResult, result));
+            }
+        } else {
+            Assertions.fail("Action attribute 'myccroot' not found");
+        }
+    } 
 }

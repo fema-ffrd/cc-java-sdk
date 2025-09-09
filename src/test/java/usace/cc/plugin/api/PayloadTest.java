@@ -20,7 +20,7 @@ public class PayloadTest {
     @Test 
     void getActions(){
         var actions = payload.getActions();
-        int expectedNumberOfActions = 2;
+        int expectedNumberOfActions = 1;
         int numberOfActions = actions.length;
         if (numberOfActions!=expectedNumberOfActions){
             Assertions.fail(String.format("Expected %d actions, found %d",expectedNumberOfActions,numberOfActions));

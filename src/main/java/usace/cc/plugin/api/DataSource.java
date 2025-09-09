@@ -38,6 +38,10 @@ public class DataSource {
         return this.paths;
     }
 
+    public String getPath(String pathkey){
+        return this.paths.get(pathkey);
+    }
+
     public void setPaths(Map<String,String> paths){
         this.paths=paths;
     }
