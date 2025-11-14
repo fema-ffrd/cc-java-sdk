@@ -14,8 +14,8 @@ public class SubstituterTest {
 
     @Test
     public void testMatcher(){
-        var substituter = new Substituter();
-        var embeddedVars = substituter.match("test me {ATTR::scenario[]}");
+        //var substituter = new Substituter();
+        var embeddedVars = Substituter.match("test me {ATTR::scenario[]}");
         assertEquals(embeddedVars.size(), 1);
         var ev = embeddedVars.get(0);
         assertEquals(ev.type, "ATTR");
@@ -126,8 +126,8 @@ public class SubstituterTest {
         var tmpl ="test me {ATTR::scenarios[]}, {ATTR::subname} for {ATTR::models[]} with bright {ATTR::colors['bright']} and a number of {ATTR::numbers[1]}";
         var tmplkey = "default";
 
-        var substituter = new Substituter();
-        var out = substituter.parameterSubstitution(tmplkey, tmpl, attrs);
+        //var substituter = new Substituter();
+        var out = Substituter.parameterSubstitution(tmplkey, tmpl, attrs,true);
 
          assertThat(out)
           .usingRecursiveComparison()
@@ -149,14 +149,12 @@ public class SubstituterTest {
         var tmpl ="test me {ATTR::scenarios}";
         var tmplkey = "default";
 
-        var substituter = new Substituter();
-        var out = substituter.parameterSubstitution(tmplkey, tmpl, attrs);
+        //var substituter = new Substituter();
+        var out = Substituter.parameterSubstitution(tmplkey, tmpl, attrs, true);
 
         assertThat(out)
           .usingRecursiveComparison()
-          .isEqualTo(expectedVals);
-
-        
+          .isEqualTo(expectedVals); 
     }
     
 }

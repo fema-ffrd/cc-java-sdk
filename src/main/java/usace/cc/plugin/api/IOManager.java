@@ -61,6 +61,10 @@ public class IOManager {
     public PayloadAttributes getAttributes(){
         return new PayloadAttributes(attributes);
     }
+
+    public void setAttributes(Map<String,Object> attrs){
+        this.attributes=attrs;
+    }
     
     public DataStore[] getStores(){
         return this.stores;

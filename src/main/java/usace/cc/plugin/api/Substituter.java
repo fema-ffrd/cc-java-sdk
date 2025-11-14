@@ -58,7 +58,7 @@ public class Substituter {
         ")?\\}"
     );
 
-    public List<EmbeddedVar> match(String subval){
+    public static List<EmbeddedVar> match(String subval){
         Matcher matcher = substitutionPattern.matcher(subval);
         var embeddedVars = new ArrayList<EmbeddedVar>();
         while (matcher.find()) {
@@ -68,15 +68,33 @@ public class Substituter {
         return embeddedVars;
     }
 
-    public Map<String,String> parameterSubstitution(String templateKey, String template, Map<String,Object> attributes){
+    public static Object getSubstitutionValue(EmbeddedVar ev, Map<String,Object> attributes) {
+        switch(ev.type){
+            case "ATTR":
+                return attributes.get(ev.varname);
+            case "ENV":
+                return System.getenv(ev.varname);
+            default:
+                return null;
+        }
+    }
+
+    public static Map<String,String> parameterSubstitution(String templateKey, String template, Map<String,Object> attributes, boolean allowAttrSubstitution){
         var output = new HashMap<String,String>();
         output.put(templateKey, template);
 
         var embeddedVars = match(template);
         for (var ev : embeddedVars){
-            var evVal = attributes.get(ev.varname);
+
+            //if this is an ATTR sub, and we are disallowing ATTR subss, then skip the loop item
+            if (ev.type=="ATTR" && !allowAttrSubstitution){
+                continue;
+            }
+
+            //process the substitution
+            var evVal = getSubstitutionValue(ev, attributes);
             if(evVal==null){
-                throw new InvalidSubstitutionException(String.format("invalid substitution for %s", ev.varname));
+                throw new InvalidSubstitutionException(String.format("invalid substitution for %s in %s", ev.varname, template));
             }
              
             if (evVal instanceof String){

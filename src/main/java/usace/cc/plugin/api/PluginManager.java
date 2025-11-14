@@ -1,8 +1,12 @@
 package usace.cc.plugin.api;
  
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -115,9 +119,10 @@ public final class PluginManager {
     }
 
     private void substituteVariables(){
-        var attrs = this.payload.getAttributes();
+        var newattrs = substituteAttributes(payload.getAttributes().getAttributes(), false);
+        this.payload.setAttributes(newattrs);
 
-        //var attrs = this.payload.getAttributes().merge(this.payload.getActions());
+        var attrs = this.payload.getAttributes();
 
         for (DataSource ds : this.payload.getInputs()){ 
             substitutePaths(ds,attrs);
@@ -128,11 +133,11 @@ public final class PluginManager {
         }
 
         for (Action action :this.payload.getActions()){
+             var newActionAttr = substituteAttributes(action.getAttributes().getAttributes(),true);
+             action.setAttributes(newActionAttr);
+
             //create a merged map for action path substitution
             var mergedAttr = attrs.merge(action.getAttributes());
-
-            //Disabling substitute in action attributes
-            //substituteAttributes(action.getAttributes());
   
             for (DataSource ds : action.getInputs()){ 
                 substitutePaths(ds,mergedAttr);
@@ -144,29 +149,52 @@ public final class PluginManager {
         }
     }
 
-    //this method is depricated and no longer used
-    //keeping it around for another version or two in case we change our mind
-    //and decide to allow action attribute substitution again
-    private void substituteAttributes(PayloadAttributes pattrs, boolean allowAttrSub){
-        var attrs = pattrs.getAttributes();
+
+    private Map<String,Object> substituteAttributes(Map<String,Object> attrs, boolean allowAttrSub){
+        Map<String,Object> newparams = new HashMap<>();
         for (Map.Entry<String, Object> entry : attrs.entrySet()) {
             //var key = entry.getKey();
             var val = entry.getValue();
             if (val instanceof String){
-                parameterSubstitute((String)val, pattrs,allowAttrSub);
+                var results=Substituter.parameterSubstitution(entry.getKey(),(String)val, attrs,allowAttrSub);
+                newparams.putAll(results);
+            } else if (val instanceof Map){
+                var lvals = (Map<String,Object>)val;
+                var mapparams = substituteAttributes(lvals,allowAttrSub);
+                newparams.put(entry.getKey(), mapparams);
+            } else if (val instanceof List<?>){
+                var lvals = (List<?>)val;
+                var newlist = new ArrayList<Object>();
+                for(Object lval : lvals){
+                    if (lval instanceof String){
+                       var results=Substituter.parameterSubstitution(entry.getKey(),(String)lval, attrs,allowAttrSub);
+                       for (Map.Entry<String,String> result: results.entrySet()){
+                            newlist.add(result.getValue());
+                       }
+                    } else {
+                        newlist.add(lval);
+                    }
+                }
+                newparams.put(entry.getKey(), newlist);
+            } else {
+                newparams.put(entry.getKey(), val);
             }            
         }
+        return newparams;
     }
 
     //a.k.a. pathssubstitute
     private void substitutePaths(DataSource ds, PayloadAttributes attrs){
-        var param = parameterSubstitute(ds.getName(),attrs,true); 
-        ds.setName(param);
+        var param = Substituter.parameterSubstitution("name",ds.getName(),attrs.getAttributes(),true); 
+        ds.setName(param.get("name"));
         
         var paths = ds.getPaths();
         if (paths!=null){
-            for (String key : paths.keySet()){
-                paths.put(key, parameterSubstitute(paths.get(key), attrs,true));
+            var keys = Set.copyOf(paths.keySet());
+            for (String key : keys){
+                var newPaths = Substituter.parameterSubstitution(key,paths.get(key), attrs.getAttributes(),true);
+                paths.remove(key);
+                paths.putAll(newPaths);
             }
             ds.setPaths(paths);
         }
@@ -175,40 +203,66 @@ public final class PluginManager {
         var datapathsOpt = ds.getDataPaths();
         if (datapathsOpt.isPresent()){
             var datapaths = datapathsOpt.get();
-            for (String key : datapaths.keySet()){
-                datapaths.put(key, parameterSubstitute(datapaths.get(key), attrs,true));
+            var datakeys = Set.copyOf(datapaths.keySet());
+            for (String key : datakeys){
+                var newPaths = Substituter.parameterSubstitution(key,datapaths.get(key), attrs.getAttributes(),true);
+                datapaths.remove(key);
+                datapaths.putAll(newPaths);
             }
             ds.setDataPaths(datapaths);
         }
     }
 
-    private String parameterSubstitute(String param, PayloadAttributes attrs, boolean allowAttrSub) {
-        Matcher m = p.matcher(param);
-        while(m.find()){
-            String result = m.group();
-            String[] parts = result.split("::", 0);
-            String prefix = parts[0];
-            String subname = parts[1];
-            switch(prefix){
-                case "ENV":
-                    String val = System.getenv(subname);
-                    param = param.replaceFirst("\\{"+result+"\\}", val);//?
-                    m = p.matcher(param);
-                break;
-                case "ATTR":
-                    if (allowAttrSub){
-                        Optional<String> optVal = attrs.get(subname);
-                        if (optVal.isPresent()){
-                            param = param.replaceFirst("\\{"+result+"\\}", optVal.get());//?
-                            m = p.matcher(param);
-                        } else{
-                            //@TODO logging is applied inconsistently
-                            logger.logMessage(new Message(String.format("Attribute %s not found", subname)));
-                        }
-                    }
-                break;
-            }
-        }
-        return param;
-    }
+    // private void substitutePaths(DataSource ds, PayloadAttributes attrs){
+    //     var param = parameterSubstitute(ds.getName(),attrs,true); 
+    //     ds.setName(param);
+        
+    //     var paths = ds.getPaths();
+    //     if (paths!=null){
+    //         for (String key : paths.keySet()){
+    //             paths.put(key, parameterSubstitute(paths.get(key), attrs,true));
+    //         }
+    //         ds.setPaths(paths);
+    //     }
+       
+
+    //     var datapathsOpt = ds.getDataPaths();
+    //     if (datapathsOpt.isPresent()){
+    //         var datapaths = datapathsOpt.get();
+    //         for (String key : datapaths.keySet()){
+    //             datapaths.put(key, parameterSubstitute(datapaths.get(key), attrs,true));
+    //         }
+    //         ds.setDataPaths(datapaths);
+    //     }
+    // }
+
+    // private String parameterSubstitute(String param, PayloadAttributes attrs, boolean allowAttrSub) {
+    //     Matcher m = p.matcher(param);
+    //     while(m.find()){
+    //         String result = m.group();
+    //         String[] parts = result.split("::", 0);
+    //         String prefix = parts[0];
+    //         String subname = parts[1];
+    //         switch(prefix){
+    //             case "ENV":
+    //                 String val = System.getenv(subname);
+    //                 param = param.replaceFirst("\\{"+result+"\\}", val);//?
+    //                 m = p.matcher(param);
+    //             break;
+    //             case "ATTR":
+    //                 if (allowAttrSub){
+    //                     Optional<String> optVal = attrs.get(subname);
+    //                     if (optVal.isPresent()){
+    //                         param = param.replaceFirst("\\{"+result+"\\}", optVal.get());//?
+    //                         m = p.matcher(param);
+    //                     } else{
+    //                         //@TODO logging is applied inconsistently
+    //                         logger.logMessage(new Message(String.format("Attribute %s not found", subname)));
+    //                     }
+    //                 }
+    //             break;
+    //         }
+    //     }
+    //     return param;
+    // }
 }
