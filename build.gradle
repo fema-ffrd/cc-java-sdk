@@ -9,6 +9,7 @@ plugins {
     // Apply the java-library plugin for API and implementation separation.
     id 'java-library'
     id 'com.github.johnrengelman.shadow' version '8.1.1' // or latest
+    id 'maven-publish'
 }
 
 group = 'usace.cc'
@@ -36,11 +37,15 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-core:2.12.4'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.12.4'
-    implementation platform('com.amazonaws:aws-java-sdk-bom:1.11.1000')
+    implementation platform('com.amazonaws:aws-java-sdk-bom:1.12.793')
     implementation 'com.amazonaws:aws-java-sdk-s3'
+    // implementation platform('software.amazon.awssdk:bom:2.38.4') //
+    // implementation 'software.amazon.awssdk:s3:2.38.4'
+   
     implementation 'com.google.guava:guava:31.1-jre'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.11.0'
+    testImplementation("org.assertj:assertj-core:3.27.6")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -53,4 +58,26 @@ java {
 tasks.named('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            groupId = project.group
+            artifactId = 'cc-java-sdk'
+            version = project.version
+        }
+    }
+
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/usace-cloud-compute/cc-java-sdk")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
 }

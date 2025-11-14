@@ -45,7 +45,7 @@ public final class PluginManager {
             for (Action action : payload.getActions()) {
                 this.connectStores(action.getStores());
             }
-            substitutePathVariables();
+            substituteVariables();
         } catch (Exception e) {
             throw new InvalidDataStoreException(e);
         }
@@ -114,7 +114,7 @@ public final class PluginManager {
         }
     }
 
-    private void substitutePathVariables(){
+    private void substituteVariables(){
         var attrs = this.payload.getAttributes();
 
         //var attrs = this.payload.getAttributes().merge(this.payload.getActions());
@@ -147,26 +147,26 @@ public final class PluginManager {
     //this method is depricated and no longer used
     //keeping it around for another version or two in case we change our mind
     //and decide to allow action attribute substitution again
-    private void substituteAttributes(PayloadAttributes pattrs){
+    private void substituteAttributes(PayloadAttributes pattrs, boolean allowAttrSub){
         var attrs = pattrs.getAttributes();
         for (Map.Entry<String, Object> entry : attrs.entrySet()) {
             //var key = entry.getKey();
             var val = entry.getValue();
             if (val instanceof String){
-                parameterSubstitute((String)val, pattrs);
+                parameterSubstitute((String)val, pattrs,allowAttrSub);
             }            
         }
     }
 
     //a.k.a. pathssubstitute
     private void substitutePaths(DataSource ds, PayloadAttributes attrs){
-        var param = parameterSubstitute(ds.getName(),attrs); 
+        var param = parameterSubstitute(ds.getName(),attrs,true); 
         ds.setName(param);
         
         var paths = ds.getPaths();
         if (paths!=null){
             for (String key : paths.keySet()){
-                paths.put(key, parameterSubstitute(paths.get(key), attrs));
+                paths.put(key, parameterSubstitute(paths.get(key), attrs,true));
             }
             ds.setPaths(paths);
         }
@@ -176,13 +176,13 @@ public final class PluginManager {
         if (datapathsOpt.isPresent()){
             var datapaths = datapathsOpt.get();
             for (String key : datapaths.keySet()){
-                datapaths.put(key, parameterSubstitute(datapaths.get(key), attrs));
+                datapaths.put(key, parameterSubstitute(datapaths.get(key), attrs,true));
             }
             ds.setDataPaths(datapaths);
         }
     }
 
-    private String parameterSubstitute(String param, PayloadAttributes attrs) {
+    private String parameterSubstitute(String param, PayloadAttributes attrs, boolean allowAttrSub) {
         Matcher m = p.matcher(param);
         while(m.find()){
             String result = m.group();
@@ -196,13 +196,15 @@ public final class PluginManager {
                     m = p.matcher(param);
                 break;
                 case "ATTR":
-                    Optional<String> optVal = attrs.get(subname);
-                    if (optVal.isPresent()){
-                        param = param.replaceFirst("\\{"+result+"\\}", optVal.get());//?
-                        m = p.matcher(param);
-                    } else{
-                        //@TODO logging is applied inconsistently
-                        logger.logMessage(new Message(String.format("Attribute %s not found", subname)));
+                    if (allowAttrSub){
+                        Optional<String> optVal = attrs.get(subname);
+                        if (optVal.isPresent()){
+                            param = param.replaceFirst("\\{"+result+"\\}", optVal.get());//?
+                            m = p.matcher(param);
+                        } else{
+                            //@TODO logging is applied inconsistently
+                            logger.logMessage(new Message(String.format("Attribute %s not found", subname)));
+                        }
                     }
                 break;
             }

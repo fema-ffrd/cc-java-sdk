@@ -16,7 +16,7 @@ public class DataSource {
     @JsonProperty("store_name")
     private String storeName;
     
-    @JsonProperty
+    @JsonProperty("paths")
     private Map<String,String> paths;
     
     @JsonProperty("data_paths")
