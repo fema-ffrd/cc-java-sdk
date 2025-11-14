@@ -133,5 +133,30 @@ public class SubstituterTest {
           .usingRecursiveComparison()
           .isEqualTo(expectedVals);
     }
+
+     @Test
+    public void testParameterSubstution2(){
+         Map<String,String> expectedVals = Map.of(
+            "default","test me 1,2,3,4,5"
+         );
+
+        var scenarios = Arrays.asList(1, 2, 3, 4, 5);
+
+        Map<String,Object> attrs = Map.of(
+            "scenarios", scenarios
+        );
+
+        var tmpl ="test me {ATTR::scenarios}";
+        var tmplkey = "default";
+
+        var substituter = new Substituter();
+        var out = substituter.parameterSubstitution(tmplkey, tmpl, attrs);
+
+        assertThat(out)
+          .usingRecursiveComparison()
+          .isEqualTo(expectedVals);
+
+        
+    }
     
 }
