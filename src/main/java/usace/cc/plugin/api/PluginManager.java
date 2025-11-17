@@ -7,10 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import usace.cc.plugin.api.Error.ErrorLevel;
+import usace.cc.plugin.api.Error.LoggingLevel;
 import usace.cc.plugin.api.IOManager.InvalidDataStoreException;
 import usace.cc.plugin.api.action_runner.ActionRunnerRegistry;
 import usace.cc.plugin.api.action_runner.ActionRunner;
@@ -22,7 +21,7 @@ public final class PluginManager {
 
     private CcStore cs;
     private Payload payload;
-    private Logger logger;
+    public Logger log;
     private String eventIdentifier;
     private static PluginManager instance = null;
     //private boolean hasUpdatedPaths = false;
@@ -39,9 +38,9 @@ public final class PluginManager {
     
     private PluginManager() throws InvalidDataStoreException{
         p = Pattern.compile(pathPattern);
-        String sender = System.getenv(EnvironmentVariables.CC_PLUGIN_DEFINITION);
+        //String sender = System.getenv(EnvironmentVariables.CC_PLUGIN_DEFINITION);
         eventIdentifier=System.getenv(EnvironmentVariables.CC_EVENT_IDENTIFIER);
-        logger = new Logger(sender, ErrorLevel.WARN);
+        this.log = new Logger("PluginManager");
         cs = new CcStoreS3();
         try {
             this.payload = cs.getPayload();
@@ -55,7 +54,6 @@ public final class PluginManager {
         }
         
     }
-
     
     public Payload getPayload(){
         return payload;
@@ -65,21 +63,25 @@ public final class PluginManager {
         return this.eventIdentifier;
     }
 
-    public void setLogLevel(ErrorLevel level){
-        logger.setErrorLevel(level);
-    }
+    // public void log(String msg, Object ...kvps){
+    //     this.log(msg, kvps);    
+    // }
 
-    public void logMessage(Message message){
-        logger.logMessage(message);
-    }
+    // public void setLogLevel(ErrorLevel level){
+    //     logger.setErrorLevel(level);
+    // }
 
-    public void logError(Error error){
-        logger.logError(error);
-    }
+    // public void logMessage(Message message){
+    //     logger.logMessage(message);
+    // }
+
+    // public void logError(Error error){
+    //     logger.logError(error);
+    // }
     
-    public void reportProgress(Status report){
-        logger.reportStatus(report);
-    }
+    // public void reportProgress(Status report){
+    //     logger.reportStatus(report);
+    // }
 
     public void RunActions() throws ActionRunnerException{
         for (Action action:this.getPayload().getActions()){
@@ -93,6 +95,7 @@ public final class PluginManager {
                         baseRunner.setPm(instance);
                         baseRunner.setAction(action);
                         baseRunner.setName(action.getName()); 
+                        baseRunner.log=new Logger(baseRunner.getName());
                     }
                     runner.Run();
                 } catch(Exception ex){

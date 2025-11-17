@@ -180,8 +180,7 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
                 tmpRoot = optParam.get();
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            //@TODO  UGH....NOT HANDLING THE ERRORS!!!!!!!!!!!!!!!!
+           throw new FailedToConnectError(e);
         }
         if (tmpRoot == ""){
             //error out?

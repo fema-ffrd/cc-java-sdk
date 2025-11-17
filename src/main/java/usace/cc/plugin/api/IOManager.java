@@ -260,6 +260,54 @@ public class IOManager {
         throw new InvalidDataSourceException(String.format("invalid data source. Name: %s, Path: %s, DataPath: %s",dataSourceName,pathName,dataPathName));
     }
 
+     /**
+     * Retrieves the contents of a file from an input {@link DataSource} as a byte array.
+     * <p>
+     * This method locates the data source by name and attempts to read the contents of the file
+     * identified by the given {@code pathName}. If the data source is not found, or an error occurs
+     * while accessing it, an exception is thrown. The {@code dataPathName} is included for error
+     * context but not used directly in the lookup.
+     * </p>
+     *
+     * @param dataSource the the input data source
+     * @param pathName the key or identifier of the file within the data source
+     * @param dataPathName an additional path descriptor for context in error reporting
+     * @return a byte array containing the contents of the specified file
+     * @throws InvalidDataSourceException if the data source is not found or cannot be accessed
+     * @throws IOException if an I/O error occurs while reading from the data source
+     * @throws DataStoreException if an error occurs while interacting with the data store
+     */
+    public byte[] get(DataSource ds, String pathName, String dataPathName) throws IOException, InvalidDataSourceException, DataStoreException{
+            return getInputStream(ds, pathName).readAllBytes();
+    }
+
+    /**
+     * Retrieves an {@link InputStream} from the given {@link DataSource} using the specified path key.
+     * <p>
+     * This method attempts to obtain a {@code FileDataStore} session from the data source's store name,
+     * and then retrieves the corresponding input stream using the provided {@code pathKey}.
+     * </p>
+     *
+     * @param dataSource the data source from which to retrieve the input stream
+     * @param pathKey the key or identifier used to locate the desired file within the store
+     * @return an {@code InputStream} for reading the data associated with the given key
+     * @throws InvalidDataSourceException if the store session cannot be obtained, if the store is not
+     *         present, or if an underlying {@code InvalidDataStoreException} occurs
+     */
+    public InputStream getInputStream(DataSource dataSource, String pathKey) throws InvalidDataSourceException, DataStoreException{
+        try{
+            Optional<FileStore> fdsOpt = getStoreSession(dataSource.getStoreName());
+            if(fdsOpt.isPresent()){
+                var fds = fdsOpt.get();
+                String filepath=dataSource.getPaths().get(pathKey);
+                return fds.get(filepath).getContent();
+            }
+            throw new InvalidDataSourceException("Unable to get input stream from the data source");
+        } catch(InvalidDataStoreException ex) {
+            throw new InvalidDataSourceException(ex);
+        }
+    }
+
     /**
      * Writes the provided byte array to a specified path in a named output data source.
      *
@@ -293,33 +341,6 @@ public class IOManager {
             }
         } else {
             throw new InvalidDataSourceException("Datasource not found");
-        }
-    }
-
-    /**
-     * Retrieves an {@link InputStream} from the given {@link DataSource} using the specified path key.
-     * <p>
-     * This method attempts to obtain a {@code FileDataStore} session from the data source's store name,
-     * and then retrieves the corresponding input stream using the provided {@code pathKey}.
-     * </p>
-     *
-     * @param dataSource the data source from which to retrieve the input stream
-     * @param pathKey the key or identifier used to locate the desired file within the store
-     * @return an {@code InputStream} for reading the data associated with the given key
-     * @throws InvalidDataSourceException if the store session cannot be obtained, if the store is not
-     *         present, or if an underlying {@code InvalidDataStoreException} occurs
-     */
-    public InputStream getInputStream(DataSource dataSource, String pathKey) throws InvalidDataSourceException, DataStoreException{
-        try{
-            Optional<FileStore> fdsOpt = getStoreSession(dataSource.getStoreName());
-            if(fdsOpt.isPresent()){
-                var fds = fdsOpt.get();
-                String filepath=dataSource.getPaths().get(pathKey);
-                return fds.get(filepath).getContent();
-            }
-            throw new InvalidDataSourceException("Unable to get input stream from the data source");
-        } catch(InvalidDataStoreException ex) {
-            throw new InvalidDataSourceException(ex);
         }
     }
 
