@@ -3,6 +3,7 @@ package usace.cc.plugin.api;
 public final class EnvironmentVariables {
     public static String CC_MANIFEST_ID = "CC_MANIFEST_ID";
     public static String CC_PAYLOAD_ID = "CC_PAYLOAD_ID";
+    public static String CC_LOGGING_LEVEL = "CC_LOGGING_LEVEL";
     //public static String CC_EVENT_NUMBER = "CC_EVENT_NUMBER";
     public static String CC_EVENT_IDENTIFIER = "CC_EVENT_IDENTIFIER";
     public static String CC_EVENT_ID = "CC_EVENT_ID";
