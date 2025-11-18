@@ -28,17 +28,30 @@ public class Logger {
             this.level=level;
             this.levelNumber=levelNumber;
         }
-        // public int getLevelNumber(){
-        //     return this.levelNumber;
-        // }
 
-        // public String getLevel(){
-        //     return this.level;
-        // }
+        public static CcLoggingLevel getLevelFromValue(int value){
+            for (CcLoggingLevel level:CcLoggingLevel.values()){
+                if (value>=level.levelNumber){
+                    return level;
+                }
+            }
+            return CcLoggingLevel.ERROR;
+        }
     }
 
     public Logger(String logname){
         //this.errorLevel = level;
+        var logLevelString = System.getenv(EnvironmentVariables.CC_LOGGING_LEVEL);
+        if (logLevelString==null){
+            this.loggerLevel=CcLoggingLevel.ACTION;
+        } else {
+            try{
+                var llval = Integer.parseInt(logLevelString);
+                this.loggerLevel=CcLoggingLevel.getLevelFromValue(llval);
+            } catch(Exception ex){
+                this.loggerLevel=CcLoggingLevel.ACTION;
+            }
+        }
         this.logger=LoggerFactory.getLogger(logname);
     }
 
