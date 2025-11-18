@@ -6,30 +6,30 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Error {
 
-    public enum ErrorLevel {
-        DEBUG,
-        INFO,
-        WARN,
-        ERROR,
-        FATAL,
-        PANIC,
-        DISABLED;
-        public static final EnumSet<ErrorLevel> All_Opts = EnumSet.allOf(ErrorLevel.class);
-    }
+    // public enum LoggingLevel {
+    //     DEBUG,
+    //     INFO,
+    //     WARN,
+    //     ERROR,
+    //     FATAL,
+    //     PANIC,
+    //     DISABLED;
+    //     public static final EnumSet<LoggingLevel> All_Opts = EnumSet.allOf(LoggingLevel.class);
+    // }
 
-    @JsonProperty
-    private String error;
+    // @JsonProperty
+    // private String error;
     
-    @JsonProperty
-    private ErrorLevel errorlevel;
+    // @JsonProperty
+    // private LoggingLevel errorlevel;
     
-    public String getError(){
-        return error;
-    }
+    // public String getError(){
+    //     return error;
+    // }
     
-    public ErrorLevel getErrorLevel(){
-        return errorlevel;
-    }
+    // public LoggingLevel getErrorLevel(){
+    //     return errorlevel;
+    // }
 
     /*
     func (l ErrorLevel) String() string {
