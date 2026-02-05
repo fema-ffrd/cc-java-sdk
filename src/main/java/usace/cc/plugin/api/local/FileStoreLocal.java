@@ -27,7 +27,7 @@ import usace.cc.plugin.api.StoreType;
  * Configuration is provided via DataStore parameters and environment variables:
  * <ul>
  *   <li>FSB_ROOT_PATH - Base path for storage (required)</li>
- *   <li>DataStore "root" parameter - Subdirectory path relative to base</li>
+ *   <li>DataStore "root" parameter - Subdirectory path relative to base, or absolute path</li>
  * </ul>
  *
  * @see FileStore
@@ -65,7 +65,13 @@ public class FileStoreLocal implements FileStore, ConnectionDataStore {
         // Build the full base path
         Path basePath = Paths.get(rootPath);
         if (subPath != null && !subPath.isEmpty()) {
-            basePath = basePath.resolve(subPath.replaceFirst("^/+", ""));
+            if (subPath.startsWith("/")) {
+                // Absolute path
+                basePath = Paths.get(subPath);
+            } else {
+                // Relative to rootPath
+                basePath = basePath.resolve(subPath);
+            }
         }
         this.basePath = basePath.toString();
 
